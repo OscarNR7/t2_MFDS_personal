@@ -179,8 +179,8 @@ class Listing(BaseModel):
     )
     # Relación con Address (ubicación del ítem)
     location: Mapped[Optional["Address"]] = relationship(
-         "Address",
-         foreign_keys=[location_address_id]
+        "Address",
+        foreign_keys=[location_address_id]
     )
     approved_by: Mapped[Optional["User"]] = relationship(
         "User",
