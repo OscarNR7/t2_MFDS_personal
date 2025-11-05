@@ -22,8 +22,6 @@ if TYPE_CHECKING:
     from app.models.reviews import Review
     from app.models.address import Address
     from app.models.reports import Report
-    from app.models.address import Address
-    from app.models.reports import Report
 
 
 class ListingStatusEnum(str, enum.Enum):
