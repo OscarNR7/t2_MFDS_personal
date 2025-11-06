@@ -34,6 +34,7 @@ passlib==1.7.4
 postgrest==2.23.0
 propcache==0.4.1
 psycopg2-binary==2.9.11
+asyncpg==0.30.0
 pyasn1==0.6.1
 pycparser==2.23
 pydantic==2.12.3
@@ -70,3 +71,7 @@ uvloop==0.22.1
 watchfiles==1.1.1
 websockets==15.0.1
 yarl==1.22.0
+
+# Testing dependencies
+pytest==8.4.2
+pytest-cov==7.0.0
