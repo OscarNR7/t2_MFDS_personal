@@ -19,12 +19,8 @@ IMPORTANTE: Este código NO se ejecutará hasta que configures AWS Cognito.
 import logging
 from typing import Dict, Optional, List
 from uuid import UUID
-
-# NOTE: boto3 debe instalarse cuando estés listo para usar AWS
-# pip install boto3==1.34.0 botocore==1.34.0
-
-# import boto3
-# from botocore.exceptions import ClientError, BotoCoreError
+import boto3
+from botocore.exceptions import ClientError, BotoCoreError
 
 from app.core.config import get_settings
 
@@ -59,19 +55,18 @@ class CognitoService:
     def __init__(self):
         """
         Inicializa el cliente Cognito.
-        
-        NOTA: Descomenta cuando tengas configuradas las credenciales AWS.
         """
-        # self.cognito_client = boto3.client(
-        #     'cognito-idp',
-        #     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        #     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        #     region_name=settings.COGNITO_REGION
-        # )
+        settings = get_settings()
+        self.cognito_client = boto3.client(
+            'cognito-idp',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.COGNITO_REGION
+        )
         self.user_pool_id = settings.COGNITO_USER_POOL_ID
         
         logger.info(
-            "CognitoService inicializado (modo mock - configura AWS para activar)"
+            f"CognitoService inicializado - User Pool: {self.user_pool_id}"
         )
     
     async def get_user_info(self, user_id: UUID) -> Optional[Dict]:

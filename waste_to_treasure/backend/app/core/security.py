@@ -5,18 +5,13 @@ Proporciona funciones para validar tokens JWT de Cognito,
 verificación de roles y autorización de recursos.
 """
 import logging
-import uuid
-from typing import Optional, Dict
-from functools import lru_cache
+from typing import Dict
 
-import requests
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.core.database import get_async_session
-from app.models.user import User, UserRoleEnum, UserStatusEnum
+import jwt
+from jwt import PyJWKClient
+from fastapi import HTTPException, status
+from fastapi.security import HTTPBearer
+
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -24,43 +19,6 @@ settings = get_settings()
 
 # Esquema de seguridad HTTP Bearer
 security = HTTPBearer()
-
-
-@lru_cache(maxsize=1)
-def get_cognito_jwks() -> Dict:
-    """
-    Descarga y cachea las claves públicas (JWKS) de AWS Cognito.
-    
-    Las claves se utilizan para verificar la firma de los tokens JWT.
-    Se cachea para evitar hacer requests en cada validación.
-    
-    Returns:
-        Diccionario con las claves públicas en formato JWKS.
-        
-    Raises:
-        HTTPException 500: Si no se pueden obtener las claves.
-        
-    Note:
-        Las claves se obtienen del endpoint público de Cognito:
-        https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json
-    """
-    jwks_url = (
-        f"https://cognito-idp.{settings.COGNITO_REGION}.amazonaws.com/"
-        f"{settings.COGNITO_USER_POOL_ID}/.well-known/jwks.json"
-    )
-    
-    try:
-        response = requests.get(jwks_url, timeout=10)
-        response.raise_for_status()
-        jwks = response.json()
-        logger.info("JWKS de Cognito obtenidas correctamente")
-        return jwks
-    except requests.RequestException as e:
-        logger.error(f"Error obteniendo JWKS de Cognito: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al obtener claves de verificación de Cognito"
-        )
 
 
 def verify_cognito_token(token: str) -> Dict:
@@ -94,52 +52,23 @@ def verify_cognito_token(token: str) -> Dict:
         email = payload["email"]
         ```
     """
-    # Obtener JWKS (cacheadas)
-    jwks = get_cognito_jwks()
+    # Construir JWKS URL
+    jwks_url = settings.cognito_jwks_url
     
-    # Decodificar header del token sin verificar (para obtener el 'kid')
     try:
-        unverified_header = jwt.get_unverified_header(token)
-    except JWTError as e:
-        logger.warning(f"Token con header inválido: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token JWT mal formado",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Buscar la clave pública correspondiente al 'kid' del token
-    kid = unverified_header.get("kid")
-    key = None
-    for jwk in jwks.get("keys", []):
-        if jwk.get("kid") == kid:
-            key = jwk
-            break
-    
-    if key is None:
-        logger.warning(f"No se encontró clave pública para kid: {kid}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token con clave no reconocida",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Verificar y decodificar el token
-    try:
-        # Construir la clave pública RSA desde el JWK
-        from jose.backends import RSAKey
-        rsa_key = RSAKey(key, algorithm="RS256")
+        # Usar PyJWKClient para obtener y cachear las claves públicas
+        jwks_client = PyJWKClient(jwks_url)
+        
+        # Obtener la clave de firma del token
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
         
         # Validar issuer esperado
-        expected_issuer = (
-            f"https://cognito-idp.{settings.COGNITO_REGION}.amazonaws.com/"
-            f"{settings.COGNITO_USER_POOL_ID}"
-        )
+        expected_issuer = settings.cognito_issuer
         
         # Decodificar y validar el token
         payload = jwt.decode(
             token,
-            rsa_key,
+            signing_key.key,
             algorithms=["RS256"],
             issuer=expected_issuer,
             audience=settings.COGNITO_APP_CLIENT_ID,
@@ -154,11 +83,25 @@ def verify_cognito_token(token: str) -> Dict:
         logger.info(f"Token Cognito validado para usuario: {payload.get('sub')}")
         return payload
         
-    except JWTError as e:
-        logger.warning(f"Error validando token Cognito: {e}")
+    except jwt.ExpiredSignatureError:
+        logger.warning("Token expirado")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido o expirado",
+            detail="Token expirado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Token inválido: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido o mal formado",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        logger.error(f"Error inesperado validando token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Error validando token",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

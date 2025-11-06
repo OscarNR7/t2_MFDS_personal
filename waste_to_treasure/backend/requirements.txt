@@ -44,7 +44,8 @@ pydantic_core==2.41.4
 Pygments==2.19.2
 PyJWT==2.10.1
 python-dotenv==1.2.1
-python-jose==3.5.0
+# python-jose tiene problemas con Python 3.13, usamos PyJWT directamente
+# python-jose==3.5.0
 python-multipart==0.0.20
 PyYAML==6.0.3
 realtime==2.23.0
