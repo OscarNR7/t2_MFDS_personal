@@ -30,11 +30,9 @@ class UserRead(BaseModel):
         {
             "user_id": "550e8400-e29b-41d4-a716-446655440000",
             "email": "usuario@example.com",
-            "first_name": "Juan",
-            "last_name": "Pérez",
-            "role": "BUYER",
+            "full_name": "Juan Pérez",
+            "role": "USER",
             "status": "ACTIVE",
-            "phone_number": "+52 55 1234 5678",
             "created_at": "2025-11-06T10:30:00Z"
         }
         ```
@@ -47,28 +45,18 @@ class UserRead(BaseModel):
         ..., 
         description="Email del usuario (único)"
     )
-    first_name: str = Field(
-        ..., 
-        max_length=100, 
-        description="Nombre del usuario"
-    )
-    last_name: str = Field(
-        ..., 
-        max_length=100, 
-        description="Apellido del usuario"
+    full_name: Optional[str] = Field(
+        None, 
+        max_length=255, 
+        description="Nombre completo del usuario"
     )
     role: UserRoleEnum = Field(
         ..., 
-        description="Rol del usuario (BUYER, SELLER, ADMIN)"
+        description="Rol del usuario (USER, ADMIN)"
     )
     status: UserStatusEnum = Field(
         ..., 
         description="Estado del usuario (ACTIVE, BLOCKED, PENDING)"
-    )
-    phone_number: Optional[str] = Field(
-        None, 
-        max_length=20, 
-        description="Número de teléfono (opcional)"
     )
     created_at: datetime = Field(
         ..., 
@@ -93,15 +81,13 @@ class UserPublic(BaseModel):
         ```json
         {
             "user_id": "550e8400-e29b-41d4-a716-446655440000",
-            "first_name": "Juan",
-            "last_name": "Pérez",
-            "role": "SELLER"
+            "full_name": "Juan Pérez",
+            "role": "USER"
         }
         ```
     """
     user_id: UUID
-    first_name: str
-    last_name: str
+    full_name: Optional[str] = None
     role: UserRoleEnum
     
     model_config = ConfigDict(from_attributes=True)
@@ -121,35 +107,21 @@ class UserUpdate(BaseModel):
     Example:
         ```json
         {
-            "first_name": "Juan Carlos",
-            "last_name": "Pérez López",
-            "phone_number": "+52 55 9876 5432"
+            "full_name": "Juan Carlos Pérez López"
         }
         ```
     """
-    first_name: Optional[str] = Field(
+    full_name: Optional[str] = Field(
         None, 
-        max_length=100, 
-        description="Nombre del usuario"
-    )
-    last_name: Optional[str] = Field(
-        None, 
-        max_length=100, 
-        description="Apellido del usuario"
-    )
-    phone_number: Optional[str] = Field(
-        None, 
-        max_length=20, 
-        description="Número de teléfono"
+        max_length=255, 
+        description="Nombre completo del usuario"
     )
     
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
             "example": {
-                "first_name": "Juan Carlos",
-                "last_name": "Pérez López",
-                "phone_number": "+52 55 1234 5678"
+                "full_name": "Juan Carlos Pérez López"
             }
         }
     )
@@ -160,20 +132,19 @@ class UserAdminUpdate(BaseModel):
     Schema para que administradores actualicen usuarios.
     
     Permite modificar campos adicionales que solo admins pueden cambiar:
-    - role: Cambiar rol (BUYER ↔ SELLER ↔ ADMIN)
+    - role: Cambiar rol (USER ↔ ADMIN)
     - status: Activar/bloquear usuarios
     
     Example:
         ```json
         {
-            "role": "SELLER",
+            "full_name": "Juan Pérez",
+            "role": "ADMIN",
             "status": "ACTIVE"
         }
         ```
     """
-    first_name: Optional[str] = Field(None, max_length=100)
-    last_name: Optional[str] = Field(None, max_length=100)
-    phone_number: Optional[str] = Field(None, max_length=20)
+    full_name: Optional[str] = Field(None, max_length=255)
     role: Optional[UserRoleEnum] = Field(
         None, 
         description="Rol del usuario (solo admins pueden cambiar)"
@@ -187,7 +158,8 @@ class UserAdminUpdate(BaseModel):
         from_attributes=True,
         json_schema_extra={
             "example": {
-                "role": "SELLER",
+                "full_name": "Juan Pérez",
+                "role": "USER",
                 "status": "ACTIVE"
             }
         }

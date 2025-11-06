@@ -111,20 +111,26 @@ async def get_current_user_with_jit(
         logger.info(f"Usuario no encontrado en BD. Creando JIT: {email} (UUID: {user_id})")
         
         try:
-            # Extraer nombre del email si no está en el token
+            # Extraer nombre completo del token de Cognito
             # Cognito puede incluir 'given_name' y 'family_name' en algunos casos
-            first_name = payload.get("given_name", email.split("@")[0])
-            last_name = payload.get("family_name", "")
+            given_name = payload.get("given_name", "")
+            family_name = payload.get("family_name", "")
+            
+            # Combinar nombres o usar email como fallback
+            if given_name and family_name:
+                full_name = f"{given_name} {family_name}"
+            elif given_name:
+                full_name = given_name
+            else:
+                full_name = email.split("@")[0]  # Fallback: usar parte local del email
             
             # Crear nuevo usuario
             new_user = User(
                 user_id=user_id,  # UUID de Cognito (claim 'sub')
                 email=email,
-                first_name=first_name,
-                last_name=last_name,
-                role=UserRoleEnum.BUYER,  # Rol por defecto
+                full_name=full_name,
+                role=UserRoleEnum.USER,  # Rol por defecto
                 status=UserStatusEnum.ACTIVE,  # Activo inmediatamente
-                # phone_number se puede agregar después desde el perfil
             )
             
             db.add(new_user)
