@@ -3,12 +3,12 @@ Schemas Pydantic para Cart y CartItem.
 
 Define los modelos de validación para requests y responses de la API.
 """
-from typing import List, Optional
+from typing import Optional
 from decimal import Decimal
 from datetime import datetime
 import uuid
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 # SCHEMAS PARA CART ITEM
@@ -48,9 +48,8 @@ class CartItemRead(CartItemBase):
     
     # Cálculos
     item_subtotal: Decimal = Decimal("0.00")
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # SCHEMAS PARA CART
@@ -63,7 +62,7 @@ class CartRead(BaseModel):
     updated_at: datetime
     
     # Items del carrito
-    items: List[CartItemRead] = []
+    items: list[CartItemRead] = []
     
     # Totales calculados
     total_items: int = 0
@@ -71,9 +70,8 @@ class CartRead(BaseModel):
     estimated_commission: Decimal = Decimal("0.00")
     estimated_total: Decimal = Decimal("0.00")
     has_unavailable_items: bool = False
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CartSummary(BaseModel):
@@ -83,6 +81,5 @@ class CartSummary(BaseModel):
     total_items: int
     subtotal: Decimal
     items_count: int = Field(..., description="Número de líneas en el carrito")
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
