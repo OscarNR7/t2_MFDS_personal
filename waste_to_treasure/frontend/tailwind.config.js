@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: [
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
@@ -8,17 +8,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary colors (del SRS)
         primary: {
           500: '#396539',
           600: '#294730',
         },
-        // Secondary colors
         secondary: {
           500: '#69391E',
           600: '#A2704F',
         },
-        // Neutral colors
         neutral: {
           900: '#262C32',
           100: '#F3F3F3',
@@ -26,11 +23,11 @@ module.exports = {
         },
       },
       fontFamily: {
-        poppins: ['Poppins', 'sans-serif'],
-        roboto: ['Roboto', 'sans-serif'],
-        inter: ['Inter', 'sans-serif'],
+        poppins: ['var(--font-poppins)'],
+        roboto: ['var(--font-roboto)'],
+        inter: ['var(--font-inter)'],
       },
     },
   },
-  plugins: [],
 }
+

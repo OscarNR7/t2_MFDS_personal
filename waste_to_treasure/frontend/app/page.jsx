@@ -5,7 +5,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       {/* Header temporal */}
       <header className="bg-primary-500 text-white py-4">
-        <div className="container-custom flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold font-poppins">Waste to Treasure</h1>
           <nav className="space-x-4">
             <Link href="/materials" className="hover:underline">
@@ -24,7 +24,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <main className="flex-1">
         <section className="bg-gradient-to-br from-primary-500 to-primary-600 text-white py-20">
-          <div className="container-custom text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-5xl font-bold font-poppins mb-6">
               Transformando Residuos en Recursos
             </h1>
@@ -50,7 +50,7 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section className="py-16 container-custom">
+        <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold font-poppins text-center mb-12">
             ¿Cómo Funciona?
           </h2>
@@ -95,7 +95,7 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <section className="bg-secondary-500 text-white py-16">
-          <div className="container-custom text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl font-bold font-poppins mb-4">
               ¿Listo para empezar?
             </h2>
@@ -114,7 +114,7 @@ export default function HomePage() {
 
       {/* Footer temporal */}
       <footer className="bg-neutral-900 text-white py-8">
-        <div className="container-custom text-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p>&copy; 2025 Waste to Treasure. Todos los derechos reservados.</p>
         </div>
       </footer>

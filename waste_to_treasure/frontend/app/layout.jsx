@@ -1,5 +1,5 @@
 import { Poppins, Roboto, Inter } from 'next/font/google'
-import '../styles/globals.css'
+import '../styles/global.css'
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
