@@ -8,6 +8,8 @@ from app.api.v1.endpoints import (
     plans,
     shipping,
     subscriptions,
+    webhooks,
+    payments,
 )
 
 router = APIRouter()
@@ -44,6 +46,12 @@ router.include_router(
 )
 
 router.include_router(
+    payments.router,
+    prefix="/payments",
+    tags=["Payments"]
+)
+
+router.include_router(
     plans.router,
     prefix="/plans",
     tags=["Plans"]
@@ -59,4 +67,10 @@ router.include_router(
     subscriptions.router,
     prefix="/subscriptions",
     tags=["Subscriptions"]
+)
+
+router.include_router(
+    webhooks.router,
+    prefix="/webhooks",
+    tags=["Webhooks"]
 )
