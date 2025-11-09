@@ -76,7 +76,7 @@ components/
 
 - Archivos en kebab-case: `listing-card.jsx`
 - Componentes en PascalCase: `export default function ListingCard()`
-- Props interfaces con sufijo `Props`: `interface ListingCardProps`
+- Props con JSDoc cuando sea necesario
 
 ### Estructura de Componente
 
@@ -85,19 +85,19 @@ components/
 
 import { useState } from 'react';
 import { Button } from '@/components/ui';
-import type { Listing } from '@/types';
 
-interface ListingCardProps {
-  listing: Listing;
-  onFavorite?: (id: string) => void;
-  className?: string;
-}
-
+/**
+ * Card component para mostrar listing
+ * @param {Object} props
+ * @param {Object} props.listing - Datos del listing
+ * @param {Function} [props.onFavorite] - Callback al hacer favorito
+ * @param {string} [props.className] - Clases CSS adicionales
+ */
 export default function ListingCard({ 
   listing, 
   onFavorite,
   className = '' 
-}: ListingCardProps) {
+}) {
   const [isFavorited, setIsFavorited] = useState(false);
   
   const handleFavorite = () => {

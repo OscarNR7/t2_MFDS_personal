@@ -6,20 +6,20 @@ Custom React hooks para lógica reutilizable.
 
 ```
 hooks/
-├── index.ts              # Re-exporta todos los hooks
-├── use-auth.ts           # Autenticación y usuario actual
-├── use-cart.ts           # Gestión del carrito
-├── use-listings.ts       # Consultas de listings
-├── use-orders.ts         # Consultas de órdenes
-├── use-payments.ts       # Gestión de pagos
-├── use-notifications.ts  # Notificaciones del usuario
-├── use-reviews.ts        # Reviews y ratings
-├── use-categories.ts     # Categorías
-├── use-shipping.ts       # Métodos de envío
-├── use-subscriptions.ts  # Planes y suscripciones
-├── use-debounce.ts       # Debounce para búsquedas
-├── use-media-query.ts    # Responsive breakpoints
-└── use-toast.ts          # Notificaciones toast
+├── index.js              # Re-exporta todos los hooks
+├── use-auth.js           # Autenticación y usuario actual
+├── use-cart.js           # Gestión del carrito
+├── use-listings.js       # Consultas de listings
+├── use-orders.js         # Consultas de órdenes
+├── use-payments.js       # Gestión de pagos
+├── use-notifications.js  # Notificaciones del usuario
+├── use-reviews.js        # Reviews y ratings
+├── use-categories.js     # Categorías
+├── use-shipping.js       # Métodos de envío
+├── use-subscriptions.js  # Planes y suscripciones
+├── use-debounce.js       # Debounce para búsquedas
+├── use-media-query.js    # Responsive breakpoints
+└── use-toast.js          # Notificaciones toast
 ```
 
 ## Tipos de Hooks
@@ -28,12 +28,12 @@ hooks/
 
 Hooks que obtienen datos del backend:
 
-```typescript
-// Ejemplo: use-listings.ts
-export function useListings(params?: ListingQueryParams) {
-  const [listings, setListings] = useState<Listing[]>([]);
+```javascript
+// Ejemplo: use-listings.js
+export function useListings(params) {
+  const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
     // fetch listings
@@ -47,8 +47,8 @@ export function useListings(params?: ListingQueryParams) {
 
 Hooks que conectan con stores de Zustand:
 
-```typescript
-// Ejemplo: use-cart.ts
+```javascript
+// Ejemplo: use-cart.js
 export function useCart() {
   const items = useCartStore(state => state.items);
   const addItem = useCartStore(state => state.addItem);
@@ -62,9 +62,9 @@ export function useCart() {
 
 Hooks de utilidad general:
 
-```typescript
-// Ejemplo: use-debounce.ts
-export function useDebounce<T>(value: T, delay: number): T {
+```javascript
+// Ejemplo: use-debounce.js
+export function useDebounce(value, delay) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   
   useEffect(() => {
@@ -81,7 +81,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 - Nombrar con prefijo `use` (camelCase)
 - Retornar objetos con nombres descriptivos
 - Incluir estados de loading y error para data fetching
-- Documentar parámetros y valores de retorno
+- Documentar parámetros y valores de retorno con JSDoc
 - Optimizar re-renders con useMemo/useCallback donde sea necesario
 
 ## Uso

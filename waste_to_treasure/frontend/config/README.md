@@ -6,20 +6,20 @@ Archivos de configuración y constantes de la aplicación.
 
 ```
 config/
-├── index.ts              # Re-exporta configuraciones
-├── api.ts                # URLs y configuración de API
-├── aws.ts                # Configuración AWS (Cognito, S3)
-├── stripe.ts             # Configuración Stripe
-├── constants.ts          # Constantes generales
-├── theme.ts              # Configuración de tema y colores
-└── routes.ts             # Rutas de la aplicación
+├── index.js              # Re-exporta configuraciones
+├── api.js                # URLs y configuración de API
+├── aws.js                # Configuración AWS (Cognito, S3)
+├── stripe.js             # Configuración Stripe
+├── constants.js          # Constantes generales
+├── theme.js              # Configuración de tema y colores
+└── routes.js             # Rutas de la aplicación
 ```
 
-## api.ts
+## api.js
 
 Configuración de endpoints y cliente API:
 
-```typescript
+```javascript
 export const API_CONFIG = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
   timeout: 30000,
@@ -51,11 +51,11 @@ export const API_ENDPOINTS = {
 };
 ```
 
-## aws.ts
+## aws.js
 
 Configuración de servicios AWS:
 
-```typescript
+```javascript
 export const AWS_CONFIG = {
   cognito: {
     region: process.env.NEXT_PUBLIC_COGNITO_REGION,
@@ -69,23 +69,23 @@ export const AWS_CONFIG = {
 };
 ```
 
-## stripe.ts
+## stripe.js
 
 Configuración de Stripe:
 
-```typescript
+```javascript
 export const STRIPE_CONFIG = {
-  publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+  publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   successUrl: '/checkout/success',
   cancelUrl: '/checkout/cancel',
 };
 ```
 
-## constants.ts
+## constants.js
 
 Constantes de la aplicación:
 
-```typescript
+```javascript
 export const APP_NAME = 'Waste to Treasure';
 export const APP_DESCRIPTION = 'Marketplace sostenible';
 
@@ -106,14 +106,14 @@ export const ORDER_STATUS = {
   SHIPPED: 'shipped',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
-} as const;
+};
 ```
 
-## theme.ts
+## theme.js
 
 Configuración del tema visual:
 
-```typescript
+```javascript
 export const COLORS = {
   primary: {
     main: '#396539',
@@ -138,11 +138,11 @@ export const FONTS = {
 };
 ```
 
-## routes.ts
+## routes.js
 
 Definición de rutas de la aplicación:
 
-```typescript
+```javascript
 export const ROUTES = {
   home: '/',
   
@@ -152,7 +152,7 @@ export const ROUTES = {
   
   // Marketplace
   marketplace: '/marketplace',
-  listing: (id: string) => `/marketplace/listing/${id}`,
+  listing: (id) => `/marketplace/listing/${id}`,
   
   // Dashboard
   dashboard: '/dashboard',
@@ -172,7 +172,7 @@ export const ROUTES = {
 
 ## Uso
 
-```typescript
+```javascript
 import { API_CONFIG, ROUTES, COLORS } from '@/config';
 
 // En componentes

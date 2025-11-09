@@ -4,8 +4,9 @@ Aplicación Next.js para la plataforma de marketplace sostenible Waste to Treasu
 
 ## Tecnologías
 
-- Next.js 14+ (App Router)
+- Next.js 16 (App Router)
 - React 18+
+- JavaScript (ES6+)
 - Tailwind CSS
 - AWS Cognito (autenticación)
 - Stripe (pagos)
@@ -51,7 +52,7 @@ frontend/
 │   ├── auth/             # Autenticación AWS Cognito
 │   ├── stripe/           # Integración Stripe
 │   └── utils/            # Funciones auxiliares
-├── types/                 # Definiciones TypeScript
+├── types/                 # Constantes y definiciones de datos
 ├── hooks/                 # Custom React hooks
 ├── stores/                # Zustand stores (estado global)
 ├── styles/                # Estilos globales y configuración CSS
@@ -100,12 +101,12 @@ NEXT_PUBLIC_S3_BUCKET_URL=https://your-bucket.s3.amazonaws.com
 
 ## Convenciones de Código
 
-- Usar JavaScript para todo el código
+- Usar JavaScript ES6+ para todo el código
 - Componentes funcionales con hooks
 - Nombrar archivos en kebab-case
 - Nombrar componentes en PascalCase
 - Usar Tailwind CSS para estilos
-- Documentar componentes complejos
+- Documentar componentes complejos con JSDoc
 - Tests unitarios para lógica de negocio
 
 ## Arquitectura
@@ -113,7 +114,7 @@ NEXT_PUBLIC_S3_BUCKET_URL=https://your-bucket.s3.amazonaws.com
 - **App Router**: Rutas organizadas por funcionalidad
 - **Component-driven**: Componentes pequeños y reutilizables
 - **API Client**: Capa de servicios para comunicación con backend
-- **Type-safe**: TypeScript en todo el proyecto
+- **JSDoc**: Documentación de tipos cuando sea necesario
 - **State Management**: Zustand para estado global, React Context para estado local
 - **Server Components**: Usar RSC donde sea posible para mejor rendimiento
 

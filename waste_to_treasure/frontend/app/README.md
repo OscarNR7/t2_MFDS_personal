@@ -86,10 +86,10 @@ app/
 └── api/                  # API Routes (backend-for-frontend)
     ├── webhooks/
     │   └── stripe/
-    │       └── route.ts # Webhook de Stripe
+    │       └── route.js # Webhook de Stripe
     └── auth/
         └── [...nextauth]/
-            └── route.ts # (futuro) NextAuth endpoints
+            └── route.js # (futuro) NextAuth endpoints
 ```
 
 ## Grupos de Rutas
@@ -118,7 +118,7 @@ app/
 - `loading.jsx` - Estado de carga
 - `error.jsx` - Manejo de errores
 - `not-found.jsx` - Página 404
-- `route.ts` - API Route handler
+- `route.js` - API Route handler
 
 ### Segmentos Dinámicos
 
@@ -179,8 +179,8 @@ export default function ListingsPage() {
 
 Middleware para autenticación:
 
-```typescript
-// middleware.ts (raíz)
+```javascript
+// middleware.js (raíz)
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
@@ -205,11 +205,11 @@ Usar para:
 - Proxy para ocultar keys del backend
 - Server-side operations que no pueden ir en componentes
 
-```typescript
-// app/api/webhooks/stripe/route.ts
+```javascript
+// app/api/webhooks/stripe/route.js
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(request) {
   const body = await request.text();
   // Procesar webhook
   return NextResponse.json({ received: true });

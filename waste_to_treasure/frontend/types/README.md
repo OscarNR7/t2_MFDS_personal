@@ -1,92 +1,95 @@
 # Types
 
-Definiciones de tipos TypeScript para toda la aplicación.
+Definiciones de tipos y constantes de datos para toda la aplicación (JavaScript).
 
 ## Organización
 
-Los tipos están organizados por entidad/funcionalidad del backend:
+Los tipos/constantes están organizados por entidad/funcionalidad del backend:
 
 ```
 types/
-├── index.ts              # Re-exporta todos los tipos
-├── api.ts                # Tipos de respuestas API genéricas
-├── user.ts               # Usuario, perfil, roles
-├── listing.ts            # Publicaciones/productos
-├── category.ts           # Categorías
-├── cart.ts               # Carrito de compras
-├── order.ts              # Órdenes y order items
-├── payment.ts            # Pagos, transacciones, customer
-├── shipping.ts           # Métodos y opciones de envío
-├── review.ts             # Reseñas y calificaciones
-├── notification.ts       # Notificaciones
-├── subscription.ts       # Suscripciones y planes
-├── address.ts            # Direcciones
-├── faq.ts                # FAQs
-├── legal.ts              # Documentos legales
-└── admin.ts              # Reportes, logs admin
+├── index.js              # Re-exporta todos los tipos
+├── api.js                # Tipos de respuestas API genéricas
+├── user.js               # Usuario, perfil, roles
+├── listing.js            # Publicaciones/productos
+├── category.js           # Categorías
+├── cart.js               # Carrito de compras
+├── order.js              # Órdenes y order items
+├── payment.js            # Pagos, transacciones, customer
+├── shipping.js           # Métodos y opciones de envío
+├── review.js             # Reseñas y calificaciones
+├── notification.js       # Notificaciones
+├── subscription.js       # Suscripciones y planes
+├── address.js            # Direcciones
+├── faq.js                # FAQs
+├── legal.js              # Documentos legales
+└── admin.js              # Reportes, logs admin
 ```
 
 ## Convenciones
 
 ### Nomenclatura
 
-- Interfaces para objetos: `User`, `Listing`, `Order`
-- Tipos para datos de formularios: `CreateListingData`, `UpdateUserData`
-- Tipos para respuestas API: `ListingResponse`, `OrderListResponse`
-- Enums para valores fijos: `OrderStatus`, `UserRole`, `PaymentStatus`
+- Constantes para enums: `USER_ROLES`, `ORDER_STATUS`, `PAYMENT_STATUS`
+- Objetos de ejemplo para documentación (JSDoc)
+- Funciones auxiliares para validación de tipos
 
-### Estructura de Tipos
+### Estructura con JSDoc
 
-```typescript
-// Entidad base (del backend)
-export interface User {
-  user_id: string;
-  email: string;
-  full_name: string;
-  role: UserRole;
-  created_at: string;
-}
+```javascript
+/**
+ * @typedef {Object} User
+ * @property {string} user_id
+ * @property {string} email
+ * @property {string} full_name
+ * @property {'buyer'|'seller'|'admin'} role
+ * @property {string} created_at
+ */
 
-// Datos para crear (sin campos autogenerados)
-export interface CreateUserData {
-  email: string;
-  password: string;
-  full_name: string;
-}
+/**
+ * @typedef {Object} CreateUserData
+ * @property {string} email
+ * @property {string} password
+ * @property {string} full_name
+ */
 
-// Datos para actualizar (campos opcionales)
-export interface UpdateUserData {
-  full_name?: string;
-  phone_number?: string;
-  bio?: string;
-}
+/**
+ * @typedef {Object} UserListResponse
+ * @property {User[]} items
+ * @property {number} total
+ * @property {number} page
+ * @property {number} page_size
+ */
 
-// Respuesta de lista paginada
-export interface UserListResponse {
-  items: User[];
-  total: number;
-  page: number;
-  page_size: number;
-}
+// Constantes
+export const USER_ROLES = {
+  BUYER: 'buyer',
+  SELLER: 'seller',
+  ADMIN: 'admin',
+};
 ```
 
 ## Sincronización con Backend
 
 Los tipos deben reflejar los schemas de Pydantic del backend:
-- `backend/app/schemas/*.py` → `frontend/types/*.ts`
+- `backend/app/schemas/*.py` → `frontend/types/*.js`
 
 Al agregar/modificar endpoints en el backend, actualizar los tipos correspondientes aquí.
 
 ## Uso
 
-```typescript
-import { User, CreateListingData, OrderStatus } from '@/types';
-// o
-import type { User, Listing } from '@/types';
+```javascript
+import { USER_ROLES } from '@/types';
+
+// Usar constantes
+if (user.role === USER_ROLES.SELLER) {
+  // ...
+}
 ```
 
 ## Validación
 
-Los tipos no validan en runtime. Para validación usar:
-- Zod para formularios
+Para validación de datos usar:
+- Validación manual en funciones
 - Validación de backend (principal)
+- PropTypes en componentes (opcional)

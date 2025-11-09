@@ -1,84 +1,54 @@
-# Lib# Lib - Utilidades y Configuraciones
+# Lib - Utilidades y Configuraciones
 
+Utilidades, configuraciones y servicios compartidos.
 
-
-Utilidades, configuraciones y servicios compartidos.## 🎯 Propósito
+## 🎯 Propósito
 
 Lógica compartida, configuraciones y helpers que no son componentes visuales.
 
-## Estructura
-
 ## 📂 Estructura
 
-```- `api/` - Cliente HTTP (Axios) con interceptors
+- `api/` - Cliente HTTP (Axios) con interceptors
+- `auth/` - Helpers de autenticación (Amplify)
+- `stripe/` - Configuración de Stripe Elements
+- `utils/` - Funciones auxiliares (formatters, validators)
 
-lib/- `auth/` - Helpers de autenticación (Amplify)
+## 🔌 API Client
 
-├── api/                  # Cliente API y servicios- `stripe/` - Configuración de Stripe Elements
+El archivo `lib/api/axios.js` configura Axios con:
+- Base URL del backend
+- Interceptor de autenticación (JWT de Cognito)
+- Manejo global de errores
 
-│   ├── client.ts        # Cliente axios/fetch configurado- `utils/` - Funciones auxiliares (formatters, validators)
+## 🔐 Auth Helpers
 
-│   ├── listings.ts      # Servicio de listings
+El archivo `lib/auth/cognito.js` exporta:
+- `getCurrentUser()` - Obtener usuario actual
+- `signOut()` - Cerrar sesión
+- `getToken()` - Obtener JWT token
 
-│   ├── users.ts         # Servicio de usuarios## 🔌 API Client
+## 💳 Stripe Client
 
-│   ├── orders.ts        # Servicio de órdenesEl archivo `lib/api/axios.js` configura Axios con:
-
-│   ├── payments.ts      # Servicio de pagos- Base URL del backend
-
-│   ├── cart.ts          # Servicio de carrito- Interceptor de autenticación (JWT de Cognito)
-
-│   ├── reviews.ts       # Servicio de reseñas- Manejo global de errores
-
-│   ├── categories.ts    # Servicio de categorías
-
-│   ├── shipping.ts      # Servicio de envíos## 🔐 Auth Helpers
-
-│   └── notifications.ts # Servicio de notificacionesEl archivo `lib/auth/cognito.js` exporta:
-
-│- `getCurrentUser()` - Obtener usuario actual
-
-├── auth/                 # Autenticación y autorización- `signOut()` - Cerrar sesión
-
-│   ├── cognito.ts       # Cliente AWS Cognito- `getToken()` - Obtener JWT token
-
-│   ├── auth-context.tsx # Context de autenticación
-
-│   ├── auth-provider.tsx# Provider de autenticación## 💳 Stripe Client
-
-│   └── session.ts       # Gestión de sesiónEl archivo `lib/stripe/client.js` inicializa:
-
-│```javascript
-
-├── stripe/               # Integración Stripeimport { loadStripe } from '@stripe/stripe-js'
-
-│   ├── client.ts        # Cliente Stripeexport const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-
-│   ├── checkout.ts      # Funciones de checkout```
-
-│   └── webhooks.ts      # Procesamiento webhooks
-
-│## 🛠️ Utils
-
-└── utils/                # Funciones auxiliaresFunciones comunes como:
-
-    ├── format.ts        # Formateo de datos- `formatPrice(amount)` → "$1,250.00 MXN"
-
-    ├── validation.ts    # Validaciones- `formatDate(date)` → "08 Nov 2025"
-
-    ├── date.ts          # Manejo de fechas- `validateEmail(email)` → boolean
-
-    ├── currency.ts      # Formateo de moneda
-    └── errors.ts        # Manejo de errores
+El archivo `lib/stripe/client.js` inicializa:
+```javascript
+import { loadStripe } from '@stripe/stripe-js'
+export const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 ```
+
+## 🛠️ Utils
+
+Funciones comunes como:
+- `formatPrice(amount)` → "$1,250.00 MXN"
+- `formatDate(date)` → "08 Nov 2025"
+- `validateEmail(email)` → boolean
 
 ## API Client
 
-### client.ts
+### client.js
 
 Cliente HTTP configurado con interceptors:
 
-```typescript
+```javascript
 import axios from 'axios';
 import { API_CONFIG } from '@/config';
 
@@ -116,43 +86,37 @@ export default apiClient;
 
 Cada recurso tiene su archivo de servicio:
 
-```typescript
-// lib/api/listings.ts
+```javascript
+// lib/api/listings.js
 import apiClient from './client';
-import type { Listing, CreateListingData, ListingResponse } from '@/types';
 
 export const listingsService = {
   // GET /listings
-  getAll: async (params?: {
-    category?: string;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<ListingResponse> => {
+  getAll: async (params) => {
     const { data } = await apiClient.get('/listings', { params });
     return data;
   },
   
   // GET /listings/:id
-  getById: async (id: string): Promise<Listing> => {
+  getById: async (id) => {
     const { data } = await apiClient.get(`/listings/${id}`);
     return data;
   },
   
   // POST /listings
-  create: async (listingData: CreateListingData): Promise<Listing> => {
+  create: async (listingData) => {
     const { data } = await apiClient.post('/listings', listingData);
     return data;
   },
   
   // PATCH /listings/:id
-  update: async (id: string, updates: Partial<Listing>): Promise<Listing> => {
+  update: async (id, updates) => {
     const { data } = await apiClient.patch(`/listings/${id}`, updates);
     return data;
   },
   
   // DELETE /listings/:id
-  delete: async (id: string): Promise<void> => {
+  delete: async (id) => {
     await apiClient.delete(`/listings/${id}`);
   },
 };
@@ -162,8 +126,8 @@ export const listingsService = {
 
 ### Cognito Client
 
-```typescript
-// lib/auth/cognito.ts
+```javascript
+// lib/auth/cognito.js
 import { CognitoUserPool, CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 import { AWS_CONFIG } from '@/config';
 
@@ -174,7 +138,7 @@ const userPool = new CognitoUserPool({
 
 export const cognitoAuth = {
   // Login
-  signIn: async (email: string, password: string): Promise<string> => {
+  signIn: async (email, password) => {
     return new Promise((resolve, reject) => {
       const user = new CognitoUser({ Username: email, Pool: userPool });
       const authDetails = new AuthenticationDetails({ Username: email, Password: password });
@@ -190,7 +154,7 @@ export const cognitoAuth = {
   },
   
   // Register
-  signUp: async (email: string, password: string, attributes: any) => {
+  signUp: async (email, password, attributes) => {
     // implementación
   },
   
@@ -209,27 +173,27 @@ export const cognitoAuth = {
 
 ### Auth Context
 
-```typescript
-// lib/auth/auth-context.tsx
+```javascript
+// lib/auth/auth-context.jsx
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { cognitoAuth } from './cognito';
-import type { User } from '@/types';
 
-interface AuthContextValue {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (data: any) => Promise<void>;
-}
+const AuthContext = createContext(undefined);
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+/**
+ * @typedef {Object} AuthContextValue
+ * @property {Object|null} user - Usuario actual
+ * @property {boolean} isAuthenticated - Si está autenticado
+ * @property {boolean} isLoading - Si está cargando
+ * @property {Function} login - Función de login
+ * @property {Function} logout - Función de logout
+ * @property {Function} register - Función de registro
+ */
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
@@ -250,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
   
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     const token = await cognitoAuth.signIn(email, password);
     localStorage.setItem('auth-token', token);
     await checkSession();
@@ -289,16 +253,16 @@ export function useAuth() {
 
 ### Formateo
 
-```typescript
-// lib/utils/format.ts
-export const formatCurrency = (amount: number, currency = 'USD'): string => {
+```javascript
+// lib/utils/format.js
+export const formatCurrency = (amount, currency = 'USD') => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
   }).format(amount);
 };
 
-export const formatDate = (date: string | Date): string => {
+export const formatDate = (date) => {
   return new Intl.DateTimeFormat('es-ES', {
     year: 'numeric',
     month: 'long',
@@ -306,7 +270,7 @@ export const formatDate = (date: string | Date): string => {
   }).format(new Date(date));
 };
 
-export const truncate = (text: string, maxLength: number): string => {
+export const truncate = (text, maxLength) => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + '...';
 };
@@ -314,18 +278,19 @@ export const truncate = (text: string, maxLength: number): string => {
 
 ### Validación
 
-```typescript
-// lib/utils/validation.ts
-export const validateEmail = (email: string): boolean => {
+```javascript
+// lib/utils/validation.js
+export const validateEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 };
 
-export const validatePassword = (password: string): { 
-  valid: boolean; 
-  errors: string[] 
-} => {
-  const errors: string[] = [];
+/**
+ * @param {string} password
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export const validatePassword = (password) => {
+  const errors = [];
   
   if (password.length < 8) {
     errors.push('Debe tener al menos 8 caracteres');
@@ -343,20 +308,18 @@ export const validatePassword = (password: string): {
 
 ### Manejo de Errores
 
-```typescript
-// lib/utils/errors.ts
+```javascript
+// lib/utils/errors.js
 export class APIError extends Error {
-  constructor(
-    message: string,
-    public statusCode: number,
-    public details?: any
-  ) {
+  constructor(message, statusCode, details) {
     super(message);
     this.name = 'APIError';
+    this.statusCode = statusCode;
+    this.details = details;
   }
 }
 
-export const handleAPIError = (error: any): string => {
+export const handleAPIError = (error) => {
   if (error.response) {
     return error.response.data?.detail || 'Error en el servidor';
   }
@@ -370,7 +333,7 @@ export const handleAPIError = (error: any): string => {
 ## Best Practices
 
 - Agrupar servicios por recurso/entidad
-- Usar tipos TypeScript para requests/responses
+- Usar JSDoc para documentar requests/responses
 - Centralizar configuración de clientes (axios, cognito)
 - Manejar errores de forma consistente
 - Implementar retry logic para requests fallidos
