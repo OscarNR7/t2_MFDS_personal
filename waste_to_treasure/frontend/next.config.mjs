@@ -2,6 +2,7 @@
 const nextConfig = {
   images: {
     remotePatterns: [
+      // Dominios de S3 (para producción)
       {
         protocol: 'https',
         hostname: 'waste-to-treasure-images.s3.us-east-2.amazonaws.com',
@@ -10,6 +11,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '*.amazonaws.com',
+        pathname: '/**',
+      },
+      
+      // --- INICIO DE CAMBIOS ---
+      // Dominios de prueba locales que estás usando, permite poner imagenes de cualquier dominio para modo dev
+      {
+        protocol: 'https',
+        hostname: '**',
         pathname: '/**',
       },
     ],
