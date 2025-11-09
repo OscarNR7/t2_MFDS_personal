@@ -6,7 +6,6 @@ Aplicación Next.js para la plataforma de marketplace sostenible Waste to Treasu
 
 - Next.js 14+ (App Router)
 - React 18+
-- TypeScript
 - Tailwind CSS
 - AWS Cognito (autenticación)
 - Stripe (pagos)
