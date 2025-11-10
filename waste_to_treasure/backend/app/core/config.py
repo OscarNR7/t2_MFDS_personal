@@ -5,7 +5,7 @@ Utiliza Pydantic V2 Settings para gestionar variables de entorno.
 import logging
 from functools import lru_cache
 from typing import List
-from pydantic import field_validator, PostgresDsn
+from pydantic import field_validator, PostgresDsn, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Configurar logger para este módulo
@@ -63,6 +63,16 @@ class Settings(BaseSettings):
     COGNITO_APP_CLIENT_ID: str = ""
     COGNITO_REGION: str = "us-east-2"
     
+    @property
+    def cognito_issuer(self) -> str:
+        """Retorna el issuer URL del User Pool de Cognito."""
+        return f"https://cognito-idp.{self.COGNITO_REGION}.amazonaws.com/{self.COGNITO_USER_POOL_ID}"
+    
+    @property
+    def cognito_jwks_url(self) -> str:
+        """Retorna la URL de JWKS para validar tokens JWT."""
+        return f"{self.cognito_issuer}/.well-known/jwks.json"
+    
     # ==================================
     # JWT (Fallback)
     # ==================================
@@ -80,12 +90,43 @@ class Settings(BaseSettings):
     # ==================================
     # PASARELAS DE PAGO
     # ==================================
-    STRIPE_SECRET_KEY: str = ""
-    STRIPE_PUBLISHABLE_KEY: str = ""
-    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_SECRET_KEY: str = Field(
+        ...,
+        description="Clave secreta de Stripe (sk_test_... o sk_live_...)"
+    )
+    STRIPE_PUBLISHABLE_KEY: str = Field(
+        ...,
+        description="Clave pública de Stripe (pk_test_... o pk_live_...)"
+    )
+    STRIPE_WEBHOOK_SECRET: str = Field(
+        default="",
+        description="Secret para verificar webhooks de Stripe (whsec_...)"
+    )
+    STRIPE_API_VERSION: str = Field(
+        default="2025-10-29",
+        description="Versión de la API de Stripe a utilizar"
+    )
     PAYPAL_CLIENT_ID: str = ""
     PAYPAL_CLIENT_SECRET: str = ""
     PAYPAL_MODE: str = "sandbox"
+    
+    @field_validator("STRIPE_SECRET_KEY")
+    @classmethod
+    def validate_stripe_secret_key(cls, v: str) -> str:
+        if not v.startswith(("sk_test_", "sk_live_")):
+            raise ValueError(
+                "STRIPE_SECRET_KEY debe comenzar con 'sk_test_' o 'sk_live_'"
+            )
+        return v
+    
+    @field_validator("STRIPE_PUBLISHABLE_KEY")
+    @classmethod
+    def validate_stripe_publishable_key(cls, v: str) -> str:
+        if not v.startswith(("pk_test_", "pk_live_")):
+            raise ValueError(
+                "STRIPE_PUBLISHABLE_KEY debe comenzar con 'pk_test_' o 'pk_live_'"
+            )
+        return v
     
     # ==================================
     # LÓGICA DE NEGOCIO

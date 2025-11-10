@@ -3,8 +3,10 @@ Modelo de base de datos para Suscripciones.
 
 Implementa la tabla 'suscripciones'
 """
+import uuid
 import enum
 from datetime import datetime
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import (
     func, 
@@ -17,10 +19,14 @@ from sqlalchemy import (
 )
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
-class SuscriptionStatus(str, enum.Enum):
+if TYPE_CHECKING:
+    from app.models.payment_transaction import PaymentTransaction
+
+class SubscriptionStatus(str, enum.Enum):
     # Estados posibles de una suscripcion
     ACTIVE    = "ACTIVE"
     INACTIVE  = "INACTIVE"
@@ -47,12 +53,12 @@ class Subscription(BaseModel):
         autoincrement=True,
         comment="Identificador único de la Suscripción"
     )
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment='Llave foranea a users'
+        comment='UUID del usuario suscrito'
     )
     plan_id: Mapped[int] = mapped_column(
         Integer,
@@ -61,14 +67,14 @@ class Subscription(BaseModel):
         index=True,
         comment='Llave foranea a la tabla de planes (plans)'
     )
-    status: Mapped[SuscriptionStatus] = mapped_column(
+    status: Mapped[SubscriptionStatus] = mapped_column(
         SQLAlchemyEnum(
-            SuscriptionStatus,
-            name="suscription_status_enum",
+            SubscriptionStatus,
+            name="subscription_status_enum",
             create_constraint=True
         ),
         nullable=False,
-        default=SuscriptionStatus.ACTIVE,
+        default=SubscriptionStatus.ACTIVE,
         index=True,
         comment="Estatus actual de la suscripcion (e.g., ACTIVE, INACTIVE, CANCELLED)."
     )
@@ -93,6 +99,12 @@ class Subscription(BaseModel):
     # RELATIONSHIPS
     user = relationship("User", back_populates="subscriptions")
     plan = relationship("Plan", back_populates="subscriptions")
+    
+    payment_transactions: Mapped[List["PaymentTransaction"]] = relationship(
+        "PaymentTransaction",
+        back_populates="subscription",
+        foreign_keys="PaymentTransaction.subscription_id"
+    )
 
     def __repr__(self) -> str:
         return (
