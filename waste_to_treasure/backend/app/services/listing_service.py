@@ -149,7 +149,10 @@ async def get_public_listings(
     # Query base: solo listings activos
     stmt = (
         select(Listing)
-        .options(selectinload(Listing.images))
+        .options(
+            selectinload(Listing.images),
+            selectinload(Listing.seller)
+        )
         .where(Listing.status == ListingStatusEnum.ACTIVE)
     )
 
@@ -210,7 +213,10 @@ async def get_seller_listings(
     """
     stmt = (
         select(Listing)
-        .options(selectinload(Listing.images))
+        .options(
+            selectinload(Listing.images),
+            selectinload(Listing.seller)
+        )
         .where(Listing.seller_id == seller_id)
     )
 
@@ -474,6 +480,7 @@ def convert_to_card_response(listing: Listing) -> dict:
         "listing_type": listing.listing_type,
         "primary_image_url": primary_image,
         "seller_id": listing.seller_id,
+        "seller": listing.seller,  # Incluir la relación seller
         "quantity": listing.quantity,
         "created_at": listing.created_at
     }
