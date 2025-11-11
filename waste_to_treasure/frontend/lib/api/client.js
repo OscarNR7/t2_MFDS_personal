@@ -10,7 +10,8 @@
 import axios from 'axios'
 
 // Base URL del backend desde variables de entorno
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+// Next.js usa NEXT_PUBLIC_ prefix para variables expuestas al cliente
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 /**
  * Cliente axios configurado
