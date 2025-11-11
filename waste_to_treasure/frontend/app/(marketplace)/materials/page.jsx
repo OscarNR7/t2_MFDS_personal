@@ -227,7 +227,7 @@ export default function MaterialsPage() {
   return (
     <div className="min-h-screen bg-neutral-100">
       {/* Hero Section */}
-      <section className="bg-white px-4 pb-6 pt-10 sm:px-6 lg:px-[220px]">
+      <section className="bpx-4 pb-6 pt-10 sm:px-6 lg:px-[220px]">
         <h1 className="mb-6 font-poppins text-5xl font-bold text-black">
           Materiales Disponibles
         </h1>
