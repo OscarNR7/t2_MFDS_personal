@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Habilitar exportación estática para Amplify Hosting
+  output: 'export',
+  
+  // Deshabilitar optimización de imágenes para static export
   images: {
+    unoptimized: true,
     remotePatterns: [
       // Dominios de S3 (para producción)
       {
