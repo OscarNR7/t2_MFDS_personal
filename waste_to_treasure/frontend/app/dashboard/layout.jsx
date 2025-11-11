@@ -150,9 +150,6 @@ export default function DashboardLayout({ children }) {
             <h1 className="text-white text-4xl md:text-5xl font-poppins font-bold">
               Mi Panel
             </h1>
-            <div className="lg:hidden text-white font-inter">
-              Hola, {user?.name || user?.email}
-            </div>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden p-2 rounded-md text-white hover:bg-white/20"
@@ -181,7 +178,7 @@ export default function DashboardLayout({ children }) {
         >
           {/* Fondo oscuro para el sidebar móvil */}
           <div
-            className="fixed left-0 top-0 z-50 w-80 h-full bg-neutral-900 shadow-xl p-4"
+            className="fixed left-0 top-0 z-50 w-80 h-full bg-white shadow-xl p-4 content-center"
             onClick={e => e.stopPropagation()}
           >
             <button
