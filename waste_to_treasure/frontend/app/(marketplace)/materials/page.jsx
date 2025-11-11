@@ -291,22 +291,28 @@ export default function MaterialsPage() {
           ) : (
             /* Materials Grid */
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {materials.map((material) => (
-                <MaterialCard
-                  key={material.listing_id}
-                  material={{
-                    id: material.listing_id,
-                    title: material.title,
-                    seller: material.seller_id, // TODO: Obtener nombre del vendedor
-                    price: parseFloat(material.price),
-                    unit: material.price_unit || 'unidad',
-                    available: material.quantity,
-                    unit_measure: material.price_unit || 'unidad',
-                    isResidue: material.listing_type === 'MATERIAL',
-                    imageUrl: material.primary_image_url || '/placeholder-material.jpg',
-                  }}
-                />
-              ))}
+              {materials.map((material) => {
+                if (!material.listing_id) {
+                  console.warn('Material without listing_id:', material)
+                  return null
+                }
+                return (
+                  <MaterialCard
+                    key={material.listing_id}
+                    material={{
+                      id: material.listing_id,
+                      title: material.title,
+                      seller: material.seller_id, // TODO: Obtener nombre del vendedor
+                      price: parseFloat(material.price),
+                      unit: material.price_unit || 'unidad',
+                      available: material.quantity,
+                      unit_measure: material.price_unit || 'unidad',
+                      isResidue: material.listing_type === 'MATERIAL',
+                      imageUrl: material.primary_image_url || '/placeholder-material.jpg',
+                    }}
+                  />
+                )
+              })}
             </div>
           )}
 

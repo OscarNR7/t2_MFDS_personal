@@ -205,7 +205,7 @@ export default function MaterialDetailPage() {
             <PricingCard listing={material} onAddToCart={handleAddToCart} />
 
             {/* Seller Card */}
-            <SellerCard sellerId={material.seller_id} sellerStats={reviewStats} />
+            <SellerCard sellerId={material.seller_id} seller={material.seller} sellerStats={reviewStats} />
           </div>
         </div>
 
