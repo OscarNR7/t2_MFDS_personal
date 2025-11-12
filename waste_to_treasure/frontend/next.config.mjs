@@ -1,8 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Sin output específico - dejar que Amplify lo detecte automáticamente
+  // Static export para AWS Amplify "Web" platform
+  output: 'export',
   
-  // Deshabilitar optimización de imágenes
+  // Trailing slash para compatibilidad con Amplify
+  trailingSlash: true,
+  
+  // Deshabilitar optimización de imágenes (requerido para static export)
   images: {
     unoptimized: true,
     remotePatterns: [

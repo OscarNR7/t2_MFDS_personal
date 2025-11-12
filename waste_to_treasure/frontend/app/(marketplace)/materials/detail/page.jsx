@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
@@ -13,77 +13,70 @@ import ReviewsSection from '@/components/details/ReviewsSection'
 import SimilarMaterials from '@/components/details/SimilarMaterials'
 
 /**
- * Product Details Page
- * Displays full information about a product
- * All data comes from backend API
- * Uses same components as Material Details but with listing_type='PRODUCT'
+ * Material Details Page (Query Params Version)
+ * URL: /materials/detail?id=123
  */
-export default function ProductDetailPage() {
-  const params = useParams()
+export default function MaterialDetailPage() {
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const productId = params.id
+  const materialId = searchParams.get('id')
 
   // State management
-  const [product, setProduct] = useState(null)
-  const [similarProducts, setSimilarProducts] = useState([])
+  const [material, setMaterial] = useState(null)
+  const [similarMaterials, setSimilarMaterials] = useState([])
   const [reviews, setReviews] = useState([])
   const [reviewStats, setReviewStats] = useState({ average_rating: 0, total_reviews: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
   /**
-   * Fetch product data from API
+   * Fetch material data from API
    */
   useEffect(() => {
-    const fetchProductData = async () => {
+    if (!materialId) {
+      setError('ID de material no especificado')
+      setIsLoading(false)
+      return
+    }
+
+    const fetchMaterialData = async () => {
       setIsLoading(true)
       setError(null)
 
       try {
-        // Fetch main product data
-        const productData = await listingsService.getById(productId)
-        setProduct(productData)
+        // Fetch main material data
+        const materialData = await listingsService.getById(materialId)
+        setMaterial(materialData)
 
-        // Fetch similar products (same category)
-        if (productData.category_id) {
+        // Fetch similar materials (same category)
+        if (materialData.category_id) {
           const similarData = await listingsService.getAll({
-            listing_type: 'PRODUCT',
-            category_id: productData.category_id,
+            listing_type: 'MATERIAL',
+            category_id: materialData.category_id,
             page: 1,
             page_size: 5,
           })
-          // Filter out current product
+          // Filter out current material
           const filtered = similarData.items.filter(
-            (item) => item.listing_id !== productData.listing_id
+            (item) => item.listing_id !== materialData.listing_id
           )
-          setSimilarProducts(filtered)
+          setSimilarMaterials(filtered)
         }
-
-        // TODO: Fetch reviews from reviews endpoint when available
-        // const reviewsData = await reviewsService.getByListing(productId)
-        // setReviews(reviewsData.items)
-        // setReviewStats({
-        //   average_rating: reviewsData.average_rating,
-        //   total_reviews: reviewsData.total
-        // })
       } catch (err) {
-        console.error('Error al cargar producto:', err)
-        setError('Error al cargar los detalles del producto')
+        console.error('Error al cargar material:', err)
+        setError('Error al cargar los detalles del material')
       } finally {
         setIsLoading(false)
       }
     }
 
-    if (productId) {
-      fetchProductData()
-    }
-  }, [productId])
+    fetchMaterialData()
+  }, [materialId])
 
   /**
    * Handle add to cart
    */
   const handleAddToCart = async (listingId, quantity) => {
-    // TODO: Implement cart functionality
     console.log('Agregar al carrito:', { listingId, quantity })
     alert(`Agregado al carrito: ${quantity} unidades`)
   }
@@ -96,7 +89,7 @@ export default function ProductDetailPage() {
       <div className="flex min-h-screen items-center justify-center bg-neutral-100">
         <div className="text-center">
           <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-primary-500 border-t-transparent"></div>
-          <p className="font-inter text-lg text-neutral-600">Cargando producto...</p>
+          <p className="font-inter text-lg text-neutral-600">Cargando material...</p>
         </div>
       </div>
     )
@@ -105,18 +98,18 @@ export default function ProductDetailPage() {
   /**
    * Error State
    */
-  if (error || !product) {
+  if (error || !material) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-100">
         <div className="text-center">
           <p className="mb-4 font-roboto text-xl font-semibold text-neutral-900">
-            {error || 'Producto no encontrado'}
+            {error || 'Material no encontrado'}
           </p>
           <button
-            onClick={() => router.push('/products')}
+            onClick={() => router.push('/materials')}
             className="rounded-lg bg-primary-500 px-6 py-3 font-inter text-white transition-colors hover:bg-primary-600"
           >
-            Volver a productos
+            Volver a materiales
           </button>
         </div>
       </div>
@@ -132,11 +125,11 @@ export default function ProductDetailPage() {
             Inicio
           </Link>
           <ChevronRight size={16} />
-          <Link href="/products" className="hover:text-primary-500">
-            Productos
+          <Link href="/materials" className="hover:text-primary-500">
+            Materiales
           </Link>
           <ChevronRight size={16} />
-          <span className="font-medium text-neutral-900">{product.title}</span>
+          <span className="font-medium text-neutral-900">{material.title}</span>
         </nav>
       </div>
 
@@ -153,14 +146,14 @@ export default function ProductDetailPage() {
 
       {/* Main Content */}
       <div className="px-4 pb-12 sm:px-6 lg:px-[220px]">
-        {/* Product Overview Section */}
+        {/* Material Overview Section */}
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left Column - Image Gallery */}
           <div className="lg:col-span-2">
             <ImageGallery
-              images={product.images || []}
-              title={product.title}
-              listingType={product.listing_type}
+              images={material.images || []}
+              title={material.title}
+              listingType={material.listing_type}
             />
 
             {/* Description */}
@@ -169,51 +162,39 @@ export default function ProductDetailPage() {
                 Descripción
               </h2>
               <p className="whitespace-pre-wrap font-inter text-base text-neutral-700">
-                {product.description}
+                {material.description}
               </p>
             </div>
 
             {/* What is the Material Made From */}
-            {product.origin_description && (
+            {material.origin_description && (
               <div className="mt-8 rounded-lg border border-neutral-300 bg-white p-6">
                 <h2 className="mb-4 font-roboto text-2xl font-bold text-neutral-900">
                   ¿De Qué Está Hecho El Material?
                 </h2>
                 <p className="whitespace-pre-wrap font-inter text-base text-neutral-700">
-                  {product.origin_description}
+                  {material.origin_description}
                 </p>
               </div>
             )}
 
             {/* Specifications */}
             <div className="mt-8">
-              <SpecificationsTable listing={product} />
+              <SpecificationsTable listing={material} />
             </div>
           </div>
 
           {/* Right Column - Pricing and Seller */}
           <div className="space-y-6">
-            {/* Product Title (mobile only) */}
-            <div className="lg:hidden">
+            <div className="rounded-lg border border-neutral-300 bg-white p-6">
               <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
-                {product.title}
+                {material.title}
               </h1>
-              <p className="font-inter text-sm text-neutral-600">Producto</p>
+              <p className="font-inter text-sm text-neutral-600">Material</p>
             </div>
 
-            {/* Product Title (desktop) */}
-            <div className="hidden rounded-lg border border-neutral-300 bg-white p-6 lg:block">
-              <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
-                {product.title}
-              </h1>
-              <p className="font-inter text-sm text-neutral-600">Producto</p>
-            </div>
-
-            {/* Pricing Card */}
-            <PricingCard listing={product} onAddToCart={handleAddToCart} />
-
-            {/* Seller Card */}
-            <SellerCard sellerId={product.seller_id} sellerStats={reviewStats} />
+            <PricingCard listing={material} onAddToCart={handleAddToCart} />
+            <SellerCard sellerId={material.seller_id} sellerStats={reviewStats} />
           </div>
         </div>
 
@@ -226,10 +207,10 @@ export default function ProductDetailPage() {
           />
         </div>
 
-        {/* Similar Products */}
-        {similarProducts.length > 0 && (
+        {/* Similar Materials */}
+        {similarMaterials.length > 0 && (
           <div>
-            <SimilarMaterials materials={similarProducts} title="Productos Similares" />
+            <SimilarMaterials materials={similarMaterials} title="Materiales Similares" />
           </div>
         )}
       </div>
