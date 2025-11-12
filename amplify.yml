@@ -9,11 +9,8 @@ frontend:
     build:
       commands:
         - npm run build
-        - cp -r .next/standalone/. deploy_output/
-        - cp -r .next/static deploy_output/.next/static
-        - cp -r public deploy_output/public
   artifacts:
-    baseDirectory: deploy_output
+    baseDirectory: .next
     files:
       - '**/*'
   cache:
