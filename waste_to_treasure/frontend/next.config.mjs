@@ -1,12 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Static export para AWS Amplify "Web" platform
-  output: 'export',
+  // NO usar output: 'export' - Para que Amplify Gen 1 detecte Next.js SSR
+  // El administrador debe recrear la app seleccionando "Next.js - SSR"
   
-  // Trailing slash para compatibilidad con Amplify
-  trailingSlash: true,
-  
-  // Deshabilitar optimización de imágenes (requerido para static export)
+  // Deshabilitar optimización de imágenes
   images: {
     unoptimized: true,
     remotePatterns: [
