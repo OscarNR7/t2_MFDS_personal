@@ -2,75 +2,87 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-
-// --- DATOS DE PRUEBA ---
-// TODO: Reemplazar esto con una llamada a la API
-const mockPublications = {
-  active: [
-    {
-      id: 1,
-      title: 'Silla de tarima Reciclada',
-      price: '$129.99',
-      type: 'Producto',
-      stock: '8',
-    },
-    {
-      id: 2,
-      title: 'Lote de retazos de madera',
-      price: '$208.99',
-      type: 'Material',
-      stock: '500kg',
-    },
-    {
-      id: 3,
-      title: 'Silla de tarima Reciclada',
-      price: '$165.90',
-      type: 'Producto',
-      stock: '10',
-    },
-    {
-      id: 4,
-      title: 'Silla de tarima Reciclada',
-      price: '$79.88',
-      type: 'Producto',
-      stock: '11',
-    },
-  ],
-  pending: [
-    {
-      id: 5,
-      title: 'Lote de llantas',
-      price: '$50.00',
-      type: 'Material',
-      stock: '1',
-    },
-  ],
-  inactive: [],
-}
-// --- FIN DE DATOS DE PRUEBA ---
+import { useMyListings } from '@/hooks/useMyListings'
+import { Loader2, AlertCircle, Trash2, Edit } from 'lucide-react'
 
 // Componente para la Fila de la Tabla
-function PublicationRow({ pub }) {
+function PublicationRow({ pub, onDelete }) {
+  const handleDelete = () => {
+    if (window.confirm(`¿Estás seguro de que deseas desactivar "${pub.title}"? Esta acción cambiará el estado a INACTIVO.`)) {
+      onDelete(pub.listing_id)
+    }
+  }
+
+  const formatPrice = (price, unit) => {
+    const formatted = `$${price.toFixed(2)}`
+    return unit ? `${formatted}/${unit}` : formatted
+  }
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      ACTIVE: 'bg-green-100 text-green-700 border-green-300',
+      PENDING: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+      REJECTED: 'bg-red-100 text-red-700 border-red-300',
+      INACTIVE: 'bg-gray-100 text-gray-700 border-gray-300',
+    }
+    return badges[status] || badges.INACTIVE
+  }
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      ACTIVE: 'Activa',
+      PENDING: 'Pendiente',
+      REJECTED: 'Rechazada',
+      INACTIVE: 'Inactiva',
+    }
+    return labels[status] || status
+  }
+
   return (
-    <tr className="border-b border-neutral-200">
-      <td className="py-4 px-2 font-inter text-sm text-[#596171]">
-        {pub.title}
+    <tr className="border-b border-neutral-200 hover:bg-gray-50 transition-colors">
+      <td className="py-4 px-2">
+        <div className="flex items-center gap-3">
+          {pub.images && pub.images.length > 0 && (
+            <img
+              src={pub.images[0].image_url}
+              alt={pub.title}
+              className="w-12 h-12 object-cover rounded-lg"
+            />
+          )}
+          <div>
+            <p className="font-inter text-sm font-semibold text-[#353A44]">
+              {pub.title}
+            </p>
+            <span className={`inline-block px-2 py-0.5 text-xs rounded-full border ${getStatusBadge(pub.status)}`}>
+              {getStatusLabel(pub.status)}
+            </span>
+          </div>
+        </div>
       </td>
       <td className="py-4 px-2 font-inter text-sm font-medium text-[#353A44]">
-        {pub.price}
+        {formatPrice(pub.price, pub.price_unit)}
       </td>
       <td className="py-4 px-2 font-inter text-sm text-[#596171]">
-        {pub.type}
+        {pub.listing_type === 'MATERIAL' ? 'Material' : 'Producto'}
       </td>
       <td className="py-4 px-2 font-inter text-sm text-[#596171]">
-        {pub.stock}
+        {pub.quantity} {pub.price_unit || ''}
       </td>
       <td className="py-4 px-2">
         <div className="flex items-center gap-2">
-          <button className="rounded-lg border border-primary-500 bg-primary-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500/30">
+          <Link
+            href={`/dashboard/publicaciones/${pub.listing_id}/edit`}
+            className="inline-flex items-center gap-1 rounded-lg border border-primary-500 bg-primary-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500/30"
+          >
+            <Edit className="w-4 h-4" />
             Editar
-          </button>
-          <button className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30">
+          </Link>
+          <button
+            onClick={handleDelete}
+            disabled={pub.status === 'INACTIVE'}
+            className="inline-flex items-center gap-1 rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Trash2 className="w-4 h-4" />
             Desactivar
           </button>
         </div>
@@ -98,13 +110,64 @@ function TabButton({ label, count, isActive, onClick }) {
 }
 
 export default function PublicationsList() {
-  const [activeTab, setActiveTab] = useState('active')
+  const [activeTab, setActiveTab] = useState('all')
+  const { listings, isLoading, error, fetchListings, deleteListing } = useMyListings()
 
-  // TODO: Conectar esto a la API
-  const publications = mockPublications[activeTab] || []
+  // Filtrar publicaciones según la pestaña activa
+  const getFilteredListings = () => {
+    switch (activeTab) {
+      case 'active':
+        return listings.filter(l => l.status === 'ACTIVE')
+      case 'pending':
+        return listings.filter(l => l.status === 'PENDING')
+      case 'inactive':
+        return listings.filter(l => l.status === 'INACTIVE' || l.status === 'REJECTED')
+      default:
+        return listings
+    }
+  }
+
+  const filteredListings = getFilteredListings()
+
+  // Contar publicaciones por estado
+  const counts = {
+    active: listings.filter(l => l.status === 'ACTIVE').length,
+    pending: listings.filter(l => l.status === 'PENDING').length,
+    inactive: listings.filter(l => l.status === 'INACTIVE' || l.status === 'REJECTED').length,
+  }
+
+  const handleDelete = async (listingId) => {
+    try {
+      await deleteListing(listingId)
+      // El hook ya recarga la lista automáticamente
+    } catch (err) {
+      alert('Error al desactivar la publicación: ' + err.message)
+    }
+  }
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+  }
+
+  // Mostrar loader mientras carga
+  if (isLoading && listings.length === 0) {
+    return (
+      <div className="w-full rounded-xl bg-white p-8 shadow-lg flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      </div>
+    )
+  }
 
   return (
     <div className="w-full rounded-xl bg-white p-8 shadow-lg">
+      {/* Mensaje de error */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-red-600" />
+          <span className="text-red-700 font-inter">{error}</span>
+        </div>
+      )}
+
       {/* Cabecera */}
       <div className="flex flex-col items-start justify-between gap-4 border-b border-neutral-900/60 pb-4 md:flex-row md:items-center">
         <h1 className="font-poppins text-3xl font-bold text-neutral-900">
@@ -122,21 +185,21 @@ export default function PublicationsList() {
       <div className="mt-6 flex items-center gap-6 border-b border-neutral-900/60">
         <TabButton
           label="Activas"
-          count={mockPublications.active.length}
+          count={counts.active}
           isActive={activeTab === 'active'}
-          onClick={() => setActiveTab('active')}
+          onClick={() => handleTabChange('active')}
         />
         <TabButton
           label="Pendientes"
-          count={mockPublications.pending.length}
+          count={counts.pending}
           isActive={activeTab === 'pending'}
-          onClick={() => setActiveTab('pending')}
+          onClick={() => handleTabChange('pending')}
         />
         <TabButton
           label="Inactivas"
-          count={mockPublications.inactive.length}
+          count={counts.inactive}
           isActive={activeTab === 'inactive'}
-          onClick={() => setActiveTab('inactive')}
+          onClick={() => handleTabChange('inactive')}
         />
       </div>
 
@@ -146,7 +209,7 @@ export default function PublicationsList() {
           <thead>
             <tr className="border-b border-neutral-200">
               <th className="w-2/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                Publicaciones
+                Publicación
               </th>
               <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
                 Precio
@@ -163,9 +226,13 @@ export default function PublicationsList() {
             </tr>
           </thead>
           <tbody>
-            {publications.length > 0 ? (
-              publications.map(pub => (
-                <PublicationRow key={pub.id} pub={pub} />
+            {filteredListings.length > 0 ? (
+              filteredListings.map(pub => (
+                <PublicationRow
+                  key={pub.listing_id}
+                  pub={pub}
+                  onDelete={handleDelete}
+                />
               ))
             ) : (
               <tr>
@@ -173,13 +240,23 @@ export default function PublicationsList() {
                   colSpan="5"
                   className="py-12 text-center font-inter text-neutral-600"
                 >
-                  No hay publicaciones en esta categoría.
+                  {activeTab === 'active' && 'No tienes publicaciones activas.'}
+                  {activeTab === 'pending' && 'No tienes publicaciones pendientes.'}
+                  {activeTab === 'inactive' && 'No tienes publicaciones inactivas.'}
+                  {activeTab === 'all' && 'No tienes publicaciones registradas.'}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Resumen */}
+      {filteredListings.length > 0 && (
+        <div className="mt-4 text-sm text-gray-600 font-inter">
+          Mostrando {filteredListings.length} de {listings.length} publicaciones
+        </div>
+      )}
     </div>
   )
 }
