@@ -1,90 +1,61 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useMyListings } from '@/hooks/useMyListings'
-import { Loader2, AlertCircle, Trash2, Edit } from 'lucide-react'
+import listingsService from '@/lib/api/listings'
+import { Loader2, RefreshCw } from 'lucide-react'
 
 // Componente para la Fila de la Tabla
-function PublicationRow({ pub, onDelete }) {
-  const handleDelete = () => {
-    if (window.confirm(`¿Estás seguro de que deseas desactivar "${pub.title}"? Esta acción cambiará el estado a INACTIVO.`)) {
-      onDelete(pub.listing_id)
-    }
-  }
-
-  const formatPrice = (price, unit) => {
-    const formatted = `$${price.toFixed(2)}`
-    return unit ? `${formatted}/${unit}` : formatted
-  }
-
+function PublicationRow({ pub, onEdit, onDeactivate }) {
   const getStatusBadge = (status) => {
     const badges = {
-      ACTIVE: 'bg-green-100 text-green-700 border-green-300',
-      PENDING: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-      REJECTED: 'bg-red-100 text-red-700 border-red-300',
-      INACTIVE: 'bg-gray-100 text-gray-700 border-gray-300',
+      ACTIVE: { text: 'Activo', class: 'bg-green-100 text-green-700' },
+      PENDING: { text: 'Pendiente', class: 'bg-yellow-100 text-yellow-700' },
+      REJECTED: { text: 'Rechazado', class: 'bg-red-100 text-red-700' },
+      SOLD: { text: 'Vendido', class: 'bg-blue-100 text-blue-700' }
     }
-    return badges[status] || badges.INACTIVE
+    return badges[status] || { text: status, class: 'bg-gray-100 text-gray-700' }
   }
 
-  const getStatusLabel = (status) => {
-    const labels = {
-      ACTIVE: 'Activa',
-      PENDING: 'Pendiente',
-      REJECTED: 'Rechazada',
-      INACTIVE: 'Inactiva',
-    }
-    return labels[status] || status
-  }
+  const badge = getStatusBadge(pub.status)
 
   return (
-    <tr className="border-b border-neutral-200 hover:bg-gray-50 transition-colors">
+    <tr className="border-b border-neutral-200 hover:bg-neutral-50/50 transition-colors">
       <td className="py-4 px-2">
-        <div className="flex items-center gap-3">
-          {pub.images && pub.images.length > 0 && (
-            <img
-              src={pub.images[0].image_url}
-              alt={pub.title}
-              className="w-12 h-12 object-cover rounded-lg"
-            />
-          )}
-          <div>
-            <p className="font-inter text-sm font-semibold text-[#353A44]">
-              {pub.title}
-            </p>
-            <span className={`inline-block px-2 py-0.5 text-xs rounded-full border ${getStatusBadge(pub.status)}`}>
-              {getStatusLabel(pub.status)}
-            </span>
-          </div>
+        <div className="flex flex-col gap-1">
+          <span className="font-inter text-sm text-[#353A44] font-medium">
+            {pub.title}
+          </span>
+          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${badge.class} w-fit`}>
+            {badge.text}
+          </span>
         </div>
       </td>
       <td className="py-4 px-2 font-inter text-sm font-medium text-[#353A44]">
-        {formatPrice(pub.price, pub.price_unit)}
+        ${parseFloat(pub.price).toFixed(2)}
       </td>
       <td className="py-4 px-2 font-inter text-sm text-[#596171]">
-        {pub.listing_type === 'MATERIAL' ? 'Material' : 'Producto'}
+        {pub.listing_type === 'PRODUCT' ? 'Producto' : 'Material'}
       </td>
       <td className="py-4 px-2 font-inter text-sm text-[#596171]">
-        {pub.quantity} {pub.price_unit || ''}
+        {pub.quantity}
       </td>
       <td className="py-4 px-2">
         <div className="flex items-center gap-2">
-          <Link
-            href={`/dashboard/publicaciones/${pub.listing_id}/edit`}
-            className="inline-flex items-center gap-1 rounded-lg border border-primary-500 bg-primary-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500/30"
+          <button 
+            onClick={() => onEdit(pub.listing_id)}
+            className="rounded-lg border border-primary-500 bg-primary-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500/30"
           >
-            <Edit className="w-4 h-4" />
             Editar
-          </Link>
-          <button
-            onClick={handleDelete}
-            disabled={pub.status === 'INACTIVE'}
-            className="inline-flex items-center gap-1 rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Trash2 className="w-4 h-4" />
-            Desactivar
           </button>
+          {pub.status === 'ACTIVE' && (
+            <button 
+              onClick={() => onDeactivate(pub.listing_id)}
+              className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30"
+            >
+              Desactivar
+            </button>
+          )}
         </div>
       </td>
     </tr>
@@ -110,75 +81,130 @@ function TabButton({ label, count, isActive, onClick }) {
 }
 
 export default function PublicationsList() {
-  const [activeTab, setActiveTab] = useState('all')
-  const { listings, isLoading, error, fetchListings, deleteListing } = useMyListings()
+  const [activeTab, setActiveTab] = useState('active')
+  const [publications, setPublications] = useState([])
+  const [allListings, setAllListings] = useState([]) // Guardar todos los listings
+  const [counts, setCounts] = useState({ active: 0, pending: 0, inactive: 0 })
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // Filtrar publicaciones según la pestaña activa
-  const getFilteredListings = () => {
-    switch (activeTab) {
-      case 'active':
-        return listings.filter(l => l.status === 'ACTIVE')
-      case 'pending':
-        return listings.filter(l => l.status === 'PENDING')
-      case 'inactive':
-        return listings.filter(l => l.status === 'INACTIVE' || l.status === 'REJECTED')
-      default:
-        return listings
-    }
+  // Mapeo de tabs a estados del backend
+  const statusMap = {
+    active: ['ACTIVE', 'SOLD'],
+    pending: ['PENDING'],
+    inactive: ['REJECTED', 'DELETED']
   }
 
-  const filteredListings = getFilteredListings()
+  // Función para cargar publicaciones
+  const fetchPublications = async () => {
+    setIsLoading(true)
+    setError(null)
 
-  // Contar publicaciones por estado
-  const counts = {
-    active: listings.filter(l => l.status === 'ACTIVE').length,
-    pending: listings.filter(l => l.status === 'PENDING').length,
-    inactive: listings.filter(l => l.status === 'INACTIVE' || l.status === 'REJECTED').length,
-  }
-
-  const handleDelete = async (listingId) => {
     try {
-      await deleteListing(listingId)
-      // El hook ya recarga la lista automáticamente
+      console.log('[PublicationsList] Iniciando carga de publicaciones...')
+      const response = await listingsService.getMyListings({ page_size: 100 })
+      console.log('[PublicationsList] Respuesta completa de API:', response)
+      
+      const listings = response.items || []
+      console.log('[PublicationsList] Total de listings encontrados:', listings.length)
+      console.log('[PublicationsList] Listings cargados:', listings)
+      
+      // Log detallado de cada listing
+      listings.forEach((l, i) => {
+        console.log(`  ${i + 1}. ${l.title} - Status: ${l.status} - ID: ${l.listing_id}`)
+      })
+      
+      setAllListings(listings)
+
+      // Calcular contadores por estado
+      const newCounts = {
+        active: listings.filter(l => ['ACTIVE', 'SOLD'].includes(l.status)).length,
+        pending: listings.filter(l => l.status === 'PENDING').length,
+        inactive: listings.filter(l => ['REJECTED', 'DELETED'].includes(l.status)).length
+      }
+      console.log('[PublicationsList] Contadores calculados:', newCounts)
+      setCounts(newCounts)
+
+      // Filtrar por tab activo
+      const filtered = listings.filter(l => 
+        statusMap[activeTab].includes(l.status)
+      )
+      console.log(`[PublicationsList] Tab activo: "${activeTab}", Filtrados: ${filtered.length}`)
+      console.log('[PublicationsList] Estados buscados:', statusMap[activeTab])
+      setPublications(filtered)
+
     } catch (err) {
-      alert('Error al desactivar la publicación: ' + err.message)
+      console.error('[PublicationsList] Error al cargar publicaciones:', err)
+      console.error('[PublicationsList] Detalles del error:', err.response?.data || err.message)
+      setError('Error al cargar tus publicaciones')
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab)
+  // Cargar publicaciones al montar
+  useEffect(() => {
+    fetchPublications()
+  }, [])
+
+  // Filtrar cuando cambie el tab activo
+  useEffect(() => {
+    console.log(`[PublicationsList] Tab cambió a: "${activeTab}"`)
+    console.log(`[PublicationsList] Total listings disponibles: ${allListings.length}`)
+    const filtered = allListings.filter(l => 
+      statusMap[activeTab].includes(l.status)
+    )
+    console.log(`[PublicationsList] Listings filtrados para "${activeTab}": ${filtered.length}`)
+    setPublications(filtered)
+  }, [activeTab, allListings])
+
+  const handleEdit = (listingId) => {
+    // TODO: Implementar navegación a página de edición
+    console.log('Editar listing:', listingId)
+    alert(`Función de editar en desarrollo. ID: ${listingId}`)
   }
 
-  // Mostrar loader mientras carga
-  if (isLoading && listings.length === 0) {
-    return (
-      <div className="w-full rounded-xl bg-white p-8 shadow-lg flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
-      </div>
-    )
+  const handleDeactivate = async (listingId) => {
+    if (!confirm('¿Estás seguro de que deseas desactivar esta publicación?')) {
+      return
+    }
+
+    try {
+      await listingsService.delete(listingId)
+      
+      // Recargar todas las publicaciones
+      await fetchPublications()
+
+      alert('Publicación desactivada exitosamente')
+    } catch (err) {
+      console.error('Error al desactivar:', err)
+      alert('Error al desactivar la publicación')
+    }
   }
 
   return (
     <div className="w-full rounded-xl bg-white p-8 shadow-lg">
-      {/* Mensaje de error */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-red-600" />
-          <span className="text-red-700 font-inter">{error}</span>
-        </div>
-      )}
-
       {/* Cabecera */}
       <div className="flex flex-col items-start justify-between gap-4 border-b border-neutral-900/60 pb-4 md:flex-row md:items-center">
         <h1 className="font-poppins text-3xl font-bold text-neutral-900">
           Mis Publicaciones
         </h1>
-        <Link
-          href="/dashboard/publicaciones/nuevo"
-          className="w-full rounded-lg bg-primary-500 px-6 py-3 text-center font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600 md:w-auto"
-        >
-          Publicar Nuevo
-        </Link>
+        <div className="flex gap-2 w-full md:w-auto">
+          <button
+            onClick={fetchPublications}
+            disabled={isLoading}
+            className="rounded-lg border-2 border-primary-500 px-4 py-3 font-inter text-base font-semibold text-primary-500 transition-colors hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+          <Link
+            href="/dashboard/publicaciones/nuevo"
+            className="flex-1 md:flex-none rounded-lg bg-primary-500 px-6 py-3 text-center font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600"
+          >
+            Publicar Nuevo
+          </Link>
+        </div>
       </div>
 
       {/* Pestañas de Filtro */}
@@ -187,76 +213,78 @@ export default function PublicationsList() {
           label="Activas"
           count={counts.active}
           isActive={activeTab === 'active'}
-          onClick={() => handleTabChange('active')}
+          onClick={() => setActiveTab('active')}
         />
         <TabButton
           label="Pendientes"
           count={counts.pending}
           isActive={activeTab === 'pending'}
-          onClick={() => handleTabChange('pending')}
+          onClick={() => setActiveTab('pending')}
         />
         <TabButton
           label="Inactivas"
           count={counts.inactive}
           isActive={activeTab === 'inactive'}
-          onClick={() => handleTabChange('inactive')}
+          onClick={() => setActiveTab('inactive')}
         />
       </div>
 
       {/* Tabla de Publicaciones */}
       <div className="mt-6 w-full overflow-x-auto">
-        <table className="w-full min-w-[700px] table-auto text-left">
-          <thead>
-            <tr className="border-b border-neutral-200">
-              <th className="w-2/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                Publicación
-              </th>
-              <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                Precio
-              </th>
-              <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                Tipo
-              </th>
-              <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                Stock
-              </th>
-              <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredListings.length > 0 ? (
-              filteredListings.map(pub => (
-                <PublicationRow
-                  key={pub.listing_id}
-                  pub={pub}
-                  onDelete={handleDelete}
-                />
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="5"
-                  className="py-12 text-center font-inter text-neutral-600"
-                >
-                  {activeTab === 'active' && 'No tienes publicaciones activas.'}
-                  {activeTab === 'pending' && 'No tienes publicaciones pendientes.'}
-                  {activeTab === 'inactive' && 'No tienes publicaciones inactivas.'}
-                  {activeTab === 'all' && 'No tienes publicaciones registradas.'}
-                </td>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+            <span className="ml-2 font-inter text-neutral-600">Cargando publicaciones...</span>
+          </div>
+        ) : error ? (
+          <div className="py-12 text-center">
+            <p className="font-inter text-red-600">{error}</p>
+          </div>
+        ) : (
+          <table className="w-full min-w-[700px] table-auto text-left">
+            <thead>
+              <tr className="border-b border-neutral-200">
+                <th className="w-2/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
+                  Publicaciones
+                </th>
+                <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
+                  Precio
+                </th>
+                <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
+                  Tipo
+                </th>
+                <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
+                  Stock
+                </th>
+                <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
+                  Acciones
+                </th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {publications.length > 0 ? (
+                publications.map(pub => (
+                  <PublicationRow 
+                    key={pub.listing_id} 
+                    pub={pub}
+                    onEdit={handleEdit}
+                    onDeactivate={handleDeactivate}
+                  />
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="py-12 text-center font-inter text-neutral-600"
+                  >
+                    No hay publicaciones en esta categoría.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
-
-      {/* Resumen */}
-      {filteredListings.length > 0 && (
-        <div className="mt-4 text-sm text-gray-600 font-inter">
-          Mostrando {filteredListings.length} de {listings.length} publicaciones
-        </div>
-      )}
     </div>
   )
 }

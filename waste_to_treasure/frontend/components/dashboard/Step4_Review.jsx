@@ -3,6 +3,7 @@
 // --- INICIO DE CORRECCIÓN FUNCIONAL ---
 import { useState, useEffect } from 'react'
 import uploadService from '@/lib/api/upload'
+import listingsService from '@/lib/api/listings'
 // --- FIN DE CORRECCIÓN FUNCIONAL ---
 import { useConfirmStore } from '@/stores/useConfirmStore'
 // --- INICIO DE CORRECCIÓN FUNCIONAL ---
@@ -247,7 +248,8 @@ export default function Step4_Review({
   onBack,
   listingData,
   setStep,
-  updateListingData, // <-- Prop importada
+  updateListingData,
+  onSuccess, // ✅ Callback para mostrar modal de éxito
 }) {
   const openConfirmModal = useConfirmStore(state => state.open)
   const [isUploading, setIsUploading] = useState(false)
@@ -277,48 +279,65 @@ export default function Step4_Review({
   }
 
   const handleConfirmPublish = async () => {
-    // Si hay archivos locales que aún no se han subido a S3, subirlos primero
-    if (listingData.imageFiles && listingData.imageFiles.length > 0 && 
-        (!listingData.imageUrls || listingData.imageUrls.length === 0)) {
-      
+    // NUEVO FLUJO: Crear listing primero (sin imágenes), luego subir imágenes con el ID real
+    try {
       setIsUploading(true)
-      setUploadProgress(`Subiendo ${listingData.imageFiles.length} imagen(es) a S3...`)
-
-      try {
-        const listingId = listingData.listing_id || listingData.tempId || Date.now()
+      
+      // Si hay archivos locales, subirlos DESPUÉS de crear el listing
+      if (listingData.imageFiles && listingData.imageFiles.length > 0) {
+        setUploadProgress('Creando publicación...')
         
-        // Subir imágenes a S3
+        // 1. Crear el listing primero SIN imágenes
+        const createdListing = await onPublish([]) // Array vacío de imágenes
+        
+        if (!createdListing || !createdListing.listing_id) {
+          throw new Error('No se pudo obtener el listing_id del listing creado')
+        }
+        
+        console.log('[Step4] Listing creado con ID:', createdListing.listing_id)
+        
+        // 2. Ahora subir imágenes con el listing_id REAL
+        setUploadProgress(`Subiendo ${listingData.imageFiles.length} imagen(es) a S3...`)
+        
         const uploadedUrls = await uploadService.uploadMultipleImages(
           listingData.imageFiles,
-          listingId,
+          createdListing.listing_id, // ✅ ID real del listing
           0 // Primera imagen es la principal
         )
 
-        console.log('URLs subidas a S3:', uploadedUrls)
-
-        // Actualizar listingData con las URLs de S3
-        updateListingData({
-          imageUrls: uploadedUrls,
-        })
-
-        setUploadProgress('¡Imágenes subidas! Publicando...')
+        console.log('[Step4] URLs subidas a S3:', uploadedUrls)
         
-        // Pequeña pausa para que el usuario vea el mensaje
+        // 3. Agregar las imágenes al listing usando el endpoint
+        setUploadProgress('Asociando imágenes al listing...')
+        await listingsService.addImages(createdListing.listing_id, uploadedUrls)
+        
+        console.log('[Step4] Imágenes asociadas correctamente al listing')
+        
+        setUploadProgress('¡Publicación completada!')
         setTimeout(() => {
           setIsUploading(false)
           setUploadProgress('')
-          onPublish()
+          // Mostrar modal de éxito DESPUÉS de completar todo
+          if (onSuccess) onSuccess()
+        }, 800)
+        
+      } else {
+        // No hay imágenes, solo crear el listing
+        setUploadProgress('Creando publicación...')
+        await onPublish([])
+        setTimeout(() => {
+          setIsUploading(false)
+          setUploadProgress('')
+          // Mostrar modal de éxito
+          if (onSuccess) onSuccess()
         }, 500)
-
-      } catch (error) {
-        console.error('Error al subir imágenes:', error)
-        alert(`Error al subir imágenes: ${error.message}`)
-        setIsUploading(false)
-        setUploadProgress('')
       }
-    } else {
-      // Ya hay URLs de S3, publicar directamente
-      onPublish()
+    } catch (error) {
+      console.error('[Step4] Error en el flujo de publicación:', error)
+      const errorMsg = error.response?.data?.detail || error.message || 'Error desconocido'
+      alert(`Error al publicar: ${errorMsg}`)
+      setIsUploading(false)
+      setUploadProgress('')
     }
   }
 
