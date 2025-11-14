@@ -12,7 +12,7 @@ import CheckoutSummary from '@/components/checkout/CheckoutSummary'
 import AddAddressForm from '@/components/checkout/AddAddressForm'
 import { Home, Briefcase, Plus } from 'lucide-react'
 
-// ... (Datos mock de envío y componentes de tarjeta no cambian) ...
+// ... (Datos mock de envío no cambian) ...
 const mockShippingMethods = [
   {
     method_id: 1,
@@ -30,15 +30,26 @@ const mockShippingMethods = [
   },
 ]
 
+// --- INICIO DE MODIFICACIÓN: Estética de AddressCard ---
 function AddressCard({ address, isSelected, onSelect }) {
   return (
     <button
       onClick={onSelect}
-      className={`flex w-full items-center gap-4 rounded-lg border-2 bg-neutral-50 p-6 text-left shadow-md transition-all
-        ${isSelected ? 'border-primary-500 ring-2 ring-primary-500/20' : 'border-neutral-200 hover:border-neutral-400'}
+      className={`flex w-full items-center gap-4 rounded-lg border-2 p-6 text-left shadow-md transition-all
+        ${
+          isSelected
+            ? 'border-primary-500 bg-primary-500' // Fondo verde
+            : 'border-neutral-200 bg-neutral-50 hover:border-neutral-400' // Fondo gris claro
+        }
       `}
     >
-      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary-500/10 text-primary-500">
+      <div
+        className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+          isSelected
+            ? 'bg-white/20 text-white' // Icono sobre verde
+            : 'bg-primary-500/10 text-primary-500' // Icono sobre blanco
+        }`}
+      >
         {address.notes?.includes('Oficina') ? (
           <Briefcase size={24} />
         ) : (
@@ -46,22 +57,41 @@ function AddressCard({ address, isSelected, onSelect }) {
         )}
       </div>
       <div>
-        <h4 className="font-roboto text-xl font-bold text-black">
+        <h4
+          className={`font-roboto text-xl font-bold ${
+            isSelected ? 'text-white' : 'text-black'
+          }`}
+        >
           {address.notes?.split('.')[0] || 'Mi Dirección'}
         </h4>
-        <p className="font-inter text-base font-medium text-neutral-600">
+        <p
+          className={`font-inter text-base font-medium ${
+            isSelected ? 'text-white/90' : 'text-neutral-600'
+          }`}
+        >
           {address.street}
         </p>
-        <p className="font-inter text-base font-medium text-neutral-600">
+        <p
+          className={`font-inter text-base font-medium ${
+            isSelected ? 'text-white/90' : 'text-neutral-600'
+          }`}
+        >
           {address.city}, {address.state}, {address.postal_code}
         </p>
       </div>
-      <div className="ml-auto flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 border-neutral-400">
-        {isSelected && <div className="h-3 w-3 rounded-full bg-primary-500" />}
+      <div
+        className={`ml-auto flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 ${
+          isSelected ? 'border-white' : 'border-neutral-400'
+        }`}
+      >
+        {isSelected && (
+          <div className="h-3 w-3 rounded-full bg-white" />
+        )}
       </div>
     </button>
   )
 }
+// --- FIN DE MODIFICACIÓN ---
 
 function ShippingCard({ method, isSelected, onSelect }) {
   return (
@@ -130,7 +160,7 @@ export default function CheckoutPage() {
     loadData()
     // Asegurar que el carrito esté actualizado
     fetchCart()
-  }, [isAuthorized, fetchCart])
+  }, [isAuthorized, fetchCart, addressId]) // <--- addressId añadido como dependencia
 
   const handleAddressAdded = (newAddress) => {
     setAddresses(prev => [...prev, newAddress])
