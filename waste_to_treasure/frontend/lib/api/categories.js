@@ -24,8 +24,8 @@ export const categoriesService = {
   getAll: async (params = {}) => {
     try {
       console.log('[categoriesService] Base URL del cliente:', apiClient.defaults.baseURL)
-      console.log('[categoriesService] Llamando a /categories/ con params:', params)
-      const { data } = await apiClient.get('/categories/', { params })
+      console.log('[categoriesService] Llamando a /categories con params:', params)
+      const { data } = await apiClient.get('/categories', { params })
       console.log('[categoriesService] Respuesta exitosa:', data)
       return data
     } catch (error) {
@@ -44,7 +44,7 @@ export const categoriesService = {
    */
   getById: async (categoryId) => {
     try {
-      const { data } = await apiClient.get(`/categories/${categoryId}/`)
+      const { data } = await apiClient.get(`/categories/${categoryId}`)
       return data
     } catch (error) {
       console.error(`Error al obtener categoría ${categoryId}:`, error)
@@ -59,7 +59,7 @@ export const categoriesService = {
    */
   getTree: async () => {
     try {
-      const { data } = await apiClient.get('/categories/tree/')
+      const { data } = await apiClient.get('/categories/tree')
       return data
     } catch (error) {
       console.error('Error al obtener árbol de categorías:', error)
@@ -78,7 +78,7 @@ export const categoriesService = {
    */
   create: async (categoryData) => {
     try {
-      const { data } = await apiClient.post('/categories/', categoryData)
+      const { data } = await apiClient.post('/categories', categoryData)
       return data
     } catch (error) {
       console.error('Error al crear categoría:', error)
@@ -95,7 +95,7 @@ export const categoriesService = {
    */
   update: async (categoryId, updates) => {
     try {
-      const { data } = await apiClient.patch(`/categories/${categoryId}/`, updates)
+      const { data } = await apiClient.patch(`/categories/${categoryId}`, updates)
       return data
     } catch (error) {
       console.error(`Error al actualizar categoría ${categoryId}:`, error)
@@ -111,7 +111,7 @@ export const categoriesService = {
    */
   delete: async (categoryId) => {
     try {
-      await apiClient.delete(`/categories/${categoryId}/`)
+      await apiClient.delete(`/categories/${categoryId}`)
     } catch (error) {
       console.error(`Error al eliminar categoría ${categoryId}:`, error)
       throw error
