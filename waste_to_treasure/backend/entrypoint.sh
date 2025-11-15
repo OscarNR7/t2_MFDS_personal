@@ -8,8 +8,10 @@ echo "INFO: Ejecutando migraciones de la base de datos..."
 alembic upgrade head
 
 # Iniciar el servidor de producción (Gunicorn + Uvicorn)
-echo "INFO: Iniciando el servidor Gunicorn con proxy headers habilitados..."
+echo "INFO: Iniciando el servidor Gunicorn..."
+# Nota: proxy headers manejados por ProxyHeadersMiddleware en app/main.py
 exec gunicorn -k uvicorn.workers.UvicornWorker -w 3 app.main:app \
   --bind 0.0.0.0:8000 \
-  --proxy-headers \
-  --forwarded-allow-ips='*'
+  --access-logfile - \
+  --error-logfile - \
+  --log-level info
