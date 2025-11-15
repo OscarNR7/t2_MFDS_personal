@@ -137,7 +137,6 @@ class ListingCardRead(BaseModel):
     seller_id: UUID
     quantity: int
     created_at: datetime
-    status: str
     
     class Config:
         from_attributes = True
