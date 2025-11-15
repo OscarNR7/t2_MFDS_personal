@@ -33,11 +33,8 @@ const nextConfig = {
     ],
   },
   
-  // Variables de entorno
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  },
+  // NO incluir 'env' aquí - Next.js ya toma automáticamente las variables NEXT_PUBLIC_*
+  // Si las declaras aquí y son undefined, sobrescribe las de Amplify con undefined
 }
 
 export default nextConfig
