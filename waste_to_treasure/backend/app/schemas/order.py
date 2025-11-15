@@ -21,6 +21,7 @@ class ListingBasic(BaseModel):
     """
     listing_id: int
     title: str
+    seller_id: uuid.UUID = Field(..., description="ID del vendedor del producto")
     primary_image_url: Optional[str] = Field(
         None,
         description="URL de la imagen principal del listing"
@@ -33,8 +34,20 @@ class ListingBasic(BaseModel):
         return cls(
             listing_id=listing.listing_id,
             title=listing.title,
+            seller_id=listing.seller_id,
             primary_image_url=primary_image.image_url if primary_image else None
         )
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BuyerBasic(BaseModel):
+    """
+    Schema básico para mostrar información del comprador en una orden.
+    """
+    user_id: uuid.UUID
+    email: str
+    full_name: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -78,6 +91,10 @@ class OrderRead(BaseModel):
     """
     order_id: int
     buyer_id: uuid.UUID = Field(..., description="ID del comprador")
+    buyer: Optional[BuyerBasic] = Field(
+        None,
+        description="Información básica del comprador (disponible en ventas)"
+    )
     created_at: datetime
     
     # Detalles financieros
@@ -103,9 +120,16 @@ class OrderRead(BaseModel):
             OrderItemRead.from_order_item(item) 
             for item in order.order_items
         ]
+        
+        # Incluir buyer si está cargado (para ventas)
+        buyer_data = None
+        if hasattr(order, 'buyer') and order.buyer:
+            buyer_data = BuyerBasic.model_validate(order.buyer)
+        
         return cls(
             order_id=order.order_id,
             buyer_id=order.buyer_id,
+            buyer=buyer_data,
             created_at=order.created_at,
             subtotal=order.subtotal,
             commission_amount=order.commission_amount,

@@ -2,8 +2,11 @@
 
 import { DollarSign, Package, User, CreditCard, Calendar, MapPin } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SalesDetails({ sale }) {
+  const { user } = useAuth();
+  
   if (!sale) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -56,6 +59,19 @@ export default function SalesDetails({ sale }) {
   const totalAmount = typeof sale.total_amount === 'number' 
     ? sale.total_amount 
     : parseFloat(sale.total_amount || 0);
+
+  // Filtrar solo los items que pertenecen al vendedor actual
+  const myItems = sale.order_items?.filter(item => 
+    item.listing && item.listing.seller_id === user?.user_id
+  ) || [];
+
+  // Calcular el total solo de los items del vendedor
+  const myTotal = myItems.reduce((sum, item) => {
+    const price = typeof item.price_at_purchase === 'number' 
+      ? item.price_at_purchase 
+      : parseFloat(item.price_at_purchase || 0);
+    return sum + (price * item.quantity);
+  }, 0);
 
   return (
     <div className="space-y-6">
@@ -110,48 +126,44 @@ export default function SalesDetails({ sale }) {
           Productos Vendidos
         </h2>
         <div className="space-y-4">
-          {sale.order_items && sale.order_items.length > 0 ? (
-            sale.order_items.map((item, index) => {
-              // Filtrar solo los items que pertenecen al vendedor actual
-              // (esto se determina en el backend)
-              return (
-                <div key={index} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      {item.listing?.primary_image_url ? (
-                        <img 
-                          src={item.listing.primary_image_url} 
-                          alt={item.listing.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-8 h-8 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 font-inter">
-                        {item.listing?.title || 'Producto no disponible'}
-                      </p>
-                      <p className="text-sm text-gray-600 font-inter">
-                        Cantidad vendida: {item.quantity}
-                      </p>
-                      <p className="text-sm text-gray-600 font-inter">
-                        Precio unitario: ${typeof item.price_at_purchase === 'number' ? item.price_at_purchase.toFixed(2) : parseFloat(item.price_at_purchase || 0).toFixed(2)}
-                      </p>
-                    </div>
+          {myItems.length > 0 ? (
+            myItems.map((item, index) => (
+              <div key={index} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                    {item.listing?.primary_image_url ? (
+                      <img 
+                        src={item.listing.primary_image_url} 
+                        alt={item.listing.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
+                  <div>
                     <p className="font-semibold text-gray-900 font-inter">
-                      ${(typeof item.price_at_purchase === 'number' ? item.price_at_purchase * item.quantity : parseFloat(item.price_at_purchase || 0) * item.quantity).toFixed(2)}
+                      {item.listing?.title || 'Producto no disponible'}
+                    </p>
+                    <p className="text-sm text-gray-600 font-inter">
+                      Cantidad vendida: {item.quantity}
+                    </p>
+                    <p className="text-sm text-gray-600 font-inter">
+                      Precio unitario: ${typeof item.price_at_purchase === 'number' ? item.price_at_purchase.toFixed(2) : parseFloat(item.price_at_purchase || 0).toFixed(2)}
                     </p>
                   </div>
                 </div>
-              );
-            })
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900 font-inter">
+                    ${(typeof item.price_at_purchase === 'number' ? item.price_at_purchase * item.quantity : parseFloat(item.price_at_purchase || 0) * item.quantity).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            ))
           ) : (
-            <p className="text-gray-500 font-inter text-center py-8">No hay productos en esta venta</p>
+            <p className="text-gray-500 font-inter text-center py-8">No tienes productos vendidos en esta orden</p>
           )}
         </div>
       </div>
@@ -199,12 +211,16 @@ export default function SalesDetails({ sale }) {
         </h2>
         <div className="space-y-3">
           <div className="flex justify-between font-inter text-gray-700">
-            <span>Total de la venta:</span>
+            <span>Total de tus productos:</span>
+            <span>${myTotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-inter text-gray-500 text-sm">
+            <span>Total de la orden completa:</span>
             <span>${totalAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between font-inter text-gray-700 border-t pt-3">
             <span className="font-semibold text-lg">Recibirás:</span>
-            <span className="font-semibold text-lg text-green-600">${totalAmount.toFixed(2)}</span>
+            <span className="font-semibold text-lg text-green-600">${myTotal.toFixed(2)}</span>
           </div>
         </div>
       </div>
