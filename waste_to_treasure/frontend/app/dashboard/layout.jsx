@@ -10,12 +10,12 @@ import GlobalConfirmModal from '@/components/admin/GlobalConfirmModal'
  */
 export default function DashboardLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* NavBar Principal */}
       <NavBar />
 
       {/* Contenido Principal: Sidebar Island + Children */}
-      <main className="max-w-7xl mx-auto pt-24 pb-10 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto pt-10 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Island (Responsivo) */}
           <DashboardSidebar />

@@ -142,10 +142,10 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between mt-10">
-        <h1 className="font-poppins text-5xl font-bold text-primary-500">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+        <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
           Gestión de reportes
         </h1>
         <div className="flex items-center gap-2 text-neutral-600">
@@ -161,7 +161,7 @@ export default function AdminReportsPage() {
         </div>
       )}
 
-      <div className="mt-10">
+      <div className="mt-6 sm:mt-10">
         <ReportList
           reports={formattedReports}
           onReview={handleOpenReview}

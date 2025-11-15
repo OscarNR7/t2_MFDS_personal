@@ -157,12 +157,12 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <h1 className="font-poppins text-5xl font-bold text-primary-500 pt-20">
+      <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
         Gestión de usuarios
       </h1>
 
       {/* Filtros y búsqueda */}
-      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 sm:mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
           <input
@@ -204,7 +204,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
       
-      <div className="mt-8 rounded-xl bg-white shadow-md overflow-hidden">
+      <div className="mt-6 sm:mt-8 rounded-xl bg-white shadow-md overflow-hidden overflow-x-auto">
         <UserList
           users={users}
           onView={handleOpenDetail}

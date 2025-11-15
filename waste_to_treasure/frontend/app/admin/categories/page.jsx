@@ -143,8 +143,8 @@ export default function AdminCategoriesPage() {
 
   if (error) {
     return (
-      <div className="p-6">
-        <h1 className="font-poppins text-5xl font-bold text-primary-500">
+      <div>
+        <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
           Gestión de categorías
         </h1>
         <div className="mt-10 rounded-xl bg-red-50 border border-red-200 p-6">
@@ -175,12 +175,12 @@ export default function AdminCategoriesPage() {
   const endItem = Math.min(currentPage * itemsPerPage, totalCategories)
 
   return (
-    <div className="p-6 mt-10">
-      <h1 className="font-poppins text-5xl font-bold text-primary-500">
+    <div>
+      <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
         Gestión de categorías
       </h1>
 
-      <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="mt-6 sm:mt-10 grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <CategoryList
             categories={categories}
