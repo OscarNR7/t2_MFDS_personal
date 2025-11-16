@@ -1,11 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { ShoppingCart, Truck, ShieldCheck, RotateCcw } from 'lucide-react'
+import { ShoppingCart, Truck, ShieldCheck, RotateCcw, CreditCard, Globe, FileText, Check, Flag } from 'lucide-react'
+import ReportModal from '@/components/reports/ReportModal'
 
 export default function PricingCard({ listing, onAddToCart }) {
   const [quantity, setQuantity] = useState(1)
+<<<<<<< HEAD
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+=======
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+>>>>>>> develop
 
   const price = parseFloat(listing?.price || 0)
   const priceUnit = listing?.price_unit || 'unidad'
@@ -84,11 +89,6 @@ export default function PricingCard({ listing, onAddToCart }) {
         <button className="mb-6 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
           Gestionar mi carrito
         </button>
-      ) : (
-        <button className="mb-4 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
-          Contactar al vendedor
-        </button>
-      )}
 
       {isProduct && (
         <>

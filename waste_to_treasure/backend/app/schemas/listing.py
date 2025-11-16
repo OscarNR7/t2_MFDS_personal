@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field, field_validator, HttpUrl, computed_field,
 
 from app.models.listing import ListingStatusEnum
 from app.models.category import ListingTypeEnum
+from app.schemas.user import UserPublic
 
 
 # SCHEMAS DE LISTING IMAGE
@@ -87,31 +88,32 @@ class ListingStatusUpdate(BaseModel):
 # SCHEMAS PARA RESPONSES
 class ListingRead(ListingBase):
     """Schema de respuesta completo para una publicación."""
-    
+
     listing_id: int
     seller_id: UUID  # Cambiar a UUID, usaremos field_serializer para convertir a string
+    seller: Optional[UserPublic] = None
     status: ListingStatusEnum
     approved_by_admin_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
-    
+
     # Relaciones
     images: List[ListingImageRead] = []
-    
+
     class Config:
         from_attributes = True
-    
+
     @field_serializer('seller_id', 'approved_by_admin_id')
     def serialize_uuid(self, value: Optional[UUID], _info) -> Optional[str]:
         """Convierte UUID a string para la respuesta JSON."""
         return str(value) if value else None
-    
+
     @computed_field
     @property
     def is_available(self) -> bool:
         """Verifica si el listing está disponible."""
         return self.status == ListingStatusEnum.ACTIVE and self.quantity > 0
-    
+
     @computed_field
     @property
     def primary_image_url(self) -> Optional[str]:
@@ -126,7 +128,7 @@ class ListingRead(ListingBase):
 
 class ListingCardRead(BaseModel):
     """Schema simplificado para tarjetas en el catálogo."""
-    
+
     listing_id: int
     title: str
     price: Decimal
@@ -135,12 +137,13 @@ class ListingCardRead(BaseModel):
     status: ListingStatusEnum  # Agregado para que el frontend pueda filtrar por estado
     primary_image_url: Optional[str]
     seller_id: UUID
+    seller: Optional[UserPublic] = None
     quantity: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
-    
+
     @field_serializer('seller_id')
     def serialize_seller_uuid(self, value: UUID, _info) -> str:
         """Convierte seller_id UUID a string."""
