@@ -294,6 +294,12 @@ async def update_listing(
     for field, value in update_data.items():
         setattr(db_listing, field, value)
 
+    # Si el listing estaba ACTIVE, cambiar a PENDING para nueva revisión
+    if db_listing.status == ListingStatusEnum.ACTIVE:
+        db_listing.status = ListingStatusEnum.PENDING
+        db_listing.approved_by_admin_id = None
+        logger.info(f"Listing {listing_id} movido a PENDING para nueva revisión")
+
     await db.commit()
     await db.refresh(db_listing)
 

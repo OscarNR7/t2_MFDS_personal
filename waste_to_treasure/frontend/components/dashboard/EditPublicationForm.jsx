@@ -90,13 +90,13 @@ export default function EditPublicationForm({ listingId }) {
         updates.description = formData.description
       }
       if (parseFloat(formData.price) !== parseFloat(originalData.price)) {
-        updates.price = parseFloat(formData.price)
+        updates.price = Number(formData.price)
       }
       if (formData.price_unit !== originalData.price_unit) {
         updates.price_unit = formData.price_unit
       }
       if (parseInt(formData.quantity) !== parseInt(originalData.quantity)) {
-        updates.quantity = parseInt(formData.quantity)
+        updates.quantity = Number(formData.quantity)
       }
       if (formData.origin_description !== originalData.origin_description) {
         updates.origin_description = formData.origin_description
