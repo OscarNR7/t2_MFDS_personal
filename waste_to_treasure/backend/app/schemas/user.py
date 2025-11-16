@@ -46,9 +46,14 @@ class UserRead(BaseModel):
         description="Email del usuario (único)"
     )
     full_name: Optional[str] = Field(
-        None, 
-        max_length=255, 
+        None,
+        max_length=255,
         description="Nombre completo del usuario"
+    )
+    bio: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Biografía del vendedor - información pública sobre el negocio"
     )
     role: UserRoleEnum = Field(
         ..., 
@@ -88,8 +93,9 @@ class UserPublic(BaseModel):
     """
     user_id: UUID
     full_name: Optional[str] = None
+    bio: Optional[str] = None
     role: UserRoleEnum
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -112,16 +118,22 @@ class UserUpdate(BaseModel):
         ```
     """
     full_name: Optional[str] = Field(
-        None, 
-        max_length=255, 
+        None,
+        max_length=255,
         description="Nombre completo del usuario"
     )
-    
+    bio: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Biografía del vendedor - información pública sobre el negocio"
+    )
+
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
             "example": {
-                "full_name": "Juan Carlos Pérez López"
+                "full_name": "Juan Carlos Pérez López",
+                "bio": "Vendo productos reciclados y artesanías hechas a mano"
             }
         }
     )
@@ -145,12 +157,13 @@ class UserAdminUpdate(BaseModel):
         ```
     """
     full_name: Optional[str] = Field(None, max_length=255)
+    bio: Optional[str] = Field(None, max_length=1000)
     role: Optional[UserRoleEnum] = Field(
-        None, 
+        None,
         description="Rol del usuario (solo admins pueden cambiar)"
     )
     status: Optional[UserStatusEnum] = Field(
-        None, 
+        None,
         description="Estado del usuario (solo admins pueden cambiar)"
     )
     
