@@ -40,7 +40,8 @@ export const sellersService = {
         seller_type: 'INDUSTRIAL',
         city: 'Ciudad Juárez',
         state: 'Chihuahua',
-        profile_image_url: null,
+        // Mapear profile_image_url si el backend lo devuelve
+        profile_image_url: data.profile_image_url || null,
       }
     } catch (error) {
       // Si el usuario no existe (404), retornar fallback

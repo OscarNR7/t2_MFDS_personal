@@ -80,6 +80,11 @@ class User(BaseModel):
         nullable=True,
         comment="Nombre completo o visible del usuario"
     )
+    profile_image_url: Mapped[Optional[str]] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="URL de la imagen de perfil del usuario en S3"
+    )
     bio: Mapped[Optional[str]] = mapped_column(
         String(1000),
         nullable=True,
