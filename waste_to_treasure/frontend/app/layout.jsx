@@ -25,6 +25,9 @@ export const metadata = {
   description:
     'Plataforma de marketplace para materiales reciclados y productos sustentables',
   keywords: 'reciclaje, economía circular, materiales, productos sustentables',
+  icons: {
+    icon: 'icons/LogoNoFondo.ico',
+  },
 }
 
 export default function RootLayout({ children }) {

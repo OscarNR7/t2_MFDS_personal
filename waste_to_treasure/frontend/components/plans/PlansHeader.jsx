@@ -30,7 +30,7 @@ const plans = [
     priceMonthly: 149,
     priceAnnual: 119, // Precio con descuento anual
     priceLabel: 'por mes',
-    buttonText: 'COMENZAR PRUEBA GRATUITA',
+    buttonText: 'COMENZAR PRO',
     buttonVariant: 'primary',
     isPopular: true,
     features: [
@@ -50,6 +50,7 @@ const plans = [
     buttonText: 'CONTACTAR VENTAS',
     buttonVariant: 'primary',
     isPopular: false,
+    buttonHref: '/contact',
     features: [
       { text: 'Todo lo incluido en Pro', included: true, bold: true },
       { text: 'Reportes de impacto ambiental', included: true },

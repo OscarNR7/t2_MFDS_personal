@@ -4,15 +4,13 @@ import { useState } from 'react'
 import { ShoppingCart, Truck, ShieldCheck, RotateCcw, CreditCard, Globe, FileText, Check, Flag } from 'lucide-react'
 import ReportModal from '@/components/reports/ReportModal'
 
-/**
- * Pricing Card Component
- * Displays price, quantity selector, and add to cart button
- * All data comes from backend API
- * Supports both Material and Product views with conditional policies section
- */
 export default function PricingCard({ listing, onAddToCart }) {
   const [quantity, setQuantity] = useState(1)
+<<<<<<< HEAD
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+=======
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+>>>>>>> develop
 
   const price = parseFloat(listing?.price || 0)
   const priceUnit = listing?.price_unit || 'unidad'
@@ -24,21 +22,23 @@ export default function PricingCard({ listing, onAddToCart }) {
     setQuantity(Math.min(Math.max(1, value), availableQuantity))
   }
 
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(listing.listing_id, quantity)
+  const handleAddToCart = async () => {
+    if (onAddToCart && !isAddingToCart) {
+      setIsAddingToCart(true)
+      try {
+        await onAddToCart(listing.listing_id, quantity)
+      } finally {
+        setIsAddingToCart(false)
+      }
     }
   }
 
   const totalPrice = price * quantity
-
-  // Label changes based on type
   const priceLabel = isProduct ? 'Precio unitario' : 'Precio sugerido'
   const quantityLabel = isProduct ? 'Cantidad disponible' : 'Cantidad'
 
   return (
     <div className="rounded-lg border border-neutral-300 bg-white p-6 shadow-sm">
-      {/* Price Display */}
       <div className="mb-6">
         <p className="mb-2 font-inter text-sm text-neutral-600">{priceLabel}</p>
         <p className="font-roboto text-4xl font-bold text-neutral-900">
@@ -51,7 +51,6 @@ export default function PricingCard({ listing, onAddToCart }) {
         )}
       </div>
 
-      {/* Quantity Selector */}
       <div className="mb-4">
         <label htmlFor="quantity" className="mb-2 block font-inter text-sm text-neutral-900">
           {quantityLabel}
@@ -70,7 +69,6 @@ export default function PricingCard({ listing, onAddToCart }) {
         </div>
       </div>
 
-      {/* Total Price */}
       <div className="mb-4 rounded-lg bg-primary-500/10 p-3">
         <p className="font-inter text-sm text-neutral-900">Total</p>
         <p className="font-roboto text-2xl font-bold text-primary-500">
@@ -78,40 +76,59 @@ export default function PricingCard({ listing, onAddToCart }) {
         </p>
       </div>
 
-      {/* Add to Cart Button */}
       <button
         onClick={handleAddToCart}
-        disabled={!listing?.is_available}
+        disabled={!listing?.is_available || isAddingToCart}
         className="mb-4 flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-6 py-3 font-inter text-base font-medium text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <ShoppingCart size={20} />
-        AGREGAR AL CARRITO
+        {isAddingToCart ? 'Agregando...' : 'AGREGAR AL CARRITO'}
       </button>
 
-      {/* Second Button - Different for Materials vs Products */}
+      {isProduct ? (
         <button className="mb-6 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
           Gestionar mi carrito
         </button>
 
-      {/* Divider */}
-      <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
-      </div>
+      {isProduct && (
+        <>
+          <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
+            <h4 className="font-inter text-sm font-semibold text-neutral-900">
+              Políticas de este producto
+            </h4>
 
-      {/* Report Button - For both Materials and Products */}
-      <button
-        onClick={() => setIsReportModalOpen(true)}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500 bg-white px-6 py-3 font-inter text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
-      >
-        <Flag size={18} />
-        Reportar
-      </button>
+            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
+              <div className="flex items-center gap-3">
+                <Truck size={18} className="text-primary-500" />
+                <span className="font-inter text-sm text-neutral-900">Política de envíos</span>
+              </div>
+              <span className="text-neutral-400">›</span>
+            </button>
 
-      {/* Report Modal */}
-      <ReportModal
-        isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
-        listingId={listing?.listing_id}
-      />
+            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
+              <div className="flex items-center gap-3">
+                <ShieldCheck size={18} className="text-primary-500" />
+                <span className="font-inter text-sm text-neutral-900">Política de garantía</span>
+              </div>
+              <span className="text-neutral-400">›</span>
+            </button>
+
+            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
+              <div className="flex items-center gap-3">
+                <RotateCcw size={18} className="text-primary-500" />
+                <span className="font-inter text-sm text-neutral-900">
+                  Política de devolución
+                </span>
+              </div>
+              <span className="text-neutral-400">›</span>
+            </button>
+          </div>
+
+          <button className="flex w-full items-center justify-center gap-2 font-inter text-sm text-red-600 transition-colors hover:text-red-700">
+            🚩 Reportar
+          </button>
+        </>
+      )}
     </div>
   )
 }

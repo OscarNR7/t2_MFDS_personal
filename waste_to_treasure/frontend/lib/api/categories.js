@@ -23,10 +23,15 @@ export const categoriesService = {
    */
   getAll: async (params = {}) => {
     try {
+      console.log('[categoriesService] Base URL del cliente:', apiClient.defaults.baseURL)
+      console.log('[categoriesService] Llamando a /categories con params:', params)
       const { data } = await apiClient.get('/categories', { params })
+      console.log('[categoriesService] Respuesta exitosa:', data)
       return data
     } catch (error) {
-      console.error('Error al obtener categorías:', error)
+      console.error('[categoriesService] Error al obtener categorías:', error)
+      console.error('[categoriesService] URL completa intentada:', error.config?.url)
+      console.error('[categoriesService] Base URL:', error.config?.baseURL)
       throw error
     }
   },
