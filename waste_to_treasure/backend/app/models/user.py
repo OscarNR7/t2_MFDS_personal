@@ -80,6 +80,11 @@ class User(BaseModel):
         nullable=True,
         comment="Nombre completo o visible del usuario"
     )
+    bio: Mapped[Optional[str]] = mapped_column(
+        String(1000),
+        nullable=True,
+        comment="Biografía del vendedor - información pública sobre el negocio"
+    )
     role: Mapped[UserRoleEnum] = mapped_column(
         SQLEnum(UserRoleEnum, name="user_role_enum", create_constraint=True),
         nullable=False,
