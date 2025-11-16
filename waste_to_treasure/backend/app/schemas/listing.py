@@ -74,7 +74,7 @@ class ListingUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=50)
     price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
     price_unit: Optional[str] = Field(None, max_length=50)
-    quantity: Optional[int] = Field(None, gt=0)
+    quantity: Optional[int] = Field(None, ge=0, description="Cantidad disponible (0 = sin stock)")
     origin_description: Optional[str] = Field(None, max_length=1000)
     location_address_id: Optional[int] = None
 
