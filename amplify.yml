@@ -1,32 +1,20 @@
 version: 1
 applications:
   - appRoot: waste_to_treasure/frontend
-    
-    # SECCIÓN DE BACKEND (Corregida)
-    backend:
-      phases:
-        build:
-          commands:
-            - nvm use 20
-            # 1. Navegamos DE VUELTA a la raíz del monorepo
-            - cd ../..
-            # 2. Ejecutamos el push desde la raíz
-            #    (Aquí sí encontrará tu proyecto Amplify/Cognito)
-            - amplifyPush --simple
-            
-    # SECCIÓN DE FRONTEND (Se queda casi igual)
     frontend:
       phases:
         preBuild:
           commands:
             - nvm use 20
-            # 3. Estos comandos SÍ se ejecutan dentro de 'appRoot'
+            # Verificar variables de entorno
             - echo "API_URL=$NEXT_PUBLIC_API_URL"
+            # Limpiar todo (sin cache)
             - rm -rf .next
             - rm -rf node_modules/.cache
             - npm ci --legacy-peer-deps
         build:
           commands:
+            # Mostrar variables durante build (debug)
             - echo "Building with API_URL=$NEXT_PUBLIC_API_URL"
             - npm run build
       artifacts:
@@ -36,6 +24,8 @@ applications:
       cache:
         paths:
           - node_modules/**/*
+          # NO cachear .next hasta confirmar que funciona
+          # - .next/cache/**/*
     customHeaders:
       - pattern: '**/*'
         headers:
