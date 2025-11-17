@@ -32,26 +32,25 @@ export default function CategorySelect({
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [noSubcategories, setNoSubcategories] = useState(false);
 
   // Cargar categorías desde el backend
   useEffect(() => {
-    console.log('[CategorySelect] useEffect triggered:', { type, onlyParents, parentCategoryId })
-    
     if (!type) {
-      console.log('[CategorySelect] No type, skipping')
       return;
     }
     
     // Si necesitamos subcategorías pero no hay padre, no cargar nada
     if (!onlyParents && !parentCategoryId) {
-      console.log('[CategorySelect] Need subcategories but no parent, clearing')
       setCategories([]);
+      setNoSubcategories(false);
       return;
     }
     
     const fetchCategories = async () => {
       setIsLoading(true);
       setError(null);
+      setNoSubcategories(false);
       
       try {
         const params = { 
@@ -66,12 +65,16 @@ export default function CategorySelect({
           params.parent_id = parentCategoryId; // Solo hijas de este padre
         }
         
-        console.log('[CategorySelect] Fetching with params:', params)
         const data = await categoriesService.getAll(params);
-        console.log('[CategorySelect] Received categories:', data.items?.length || 0, data.items)
-        setCategories(data.items || []);
+        const items = data.items || [];
+        setCategories(items);
+        
+        // Detectar si no hay subcategorías
+        if (!onlyParents && parentCategoryId && items.length === 0) {
+          setNoSubcategories(true);
+        }
       } catch (err) {
-        console.error('[CategorySelect] Error:', err)
+        console.error('[CategorySelect] Error:', err.message);
         setError('No se pudieron cargar las categorías');
         setCategories([]);
       } finally {
@@ -90,21 +93,23 @@ export default function CategorySelect({
       >
         {label}
       </label>
+      
       <select
         id="category"
         value={value}
         onChange={onChange}
-        disabled={isLoading || disabled || error}
+        disabled={isLoading || disabled || error || noSubcategories}
         className={`
-          w-full p-3 border border-gray-400 dark:border-gray-600 rounded-xl appearance-none
+          w-full p-3 border rounded-xl appearance-none
           bg-white text-dark
           focus:ring-2 focus:ring-[#396530] focus:border-transparent
-          disabled:bg-gray-100 disabled:cursor-not-allowed
+          transition-colors
           ${
-            value
-              ? 'text-black dark:text-black'
-              : 'text-black'
+            isLoading || disabled || error || noSubcategories
+              ? 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-60'
+              : 'border-gray-400 dark:border-gray-600'
           }
+          ${value ? 'text-black dark:text-black' : 'text-gray-500'}
         `}
       >
         <option value="" disabled>
@@ -112,6 +117,8 @@ export default function CategorySelect({
             ? 'Cargando categorías...' 
             : error 
             ? error
+            : noSubcategories
+            ? 'Esta categoría no tiene subcategorías'
             : 'Selecciona una categoría...'}
         </option>
         
@@ -122,6 +129,13 @@ export default function CategorySelect({
         ))}
       </select>
       <ChevronDown className="w-5 h-5 text-gray-400 absolute right-4 top-[42px] pointer-events-none" />
+      
+      {/* Mensaje informativo cuando no hay subcategorías */}
+      {noSubcategories && !onlyParents && (
+        <p className="text-blue-600 text-sm mt-1">
+          ¡La categoría seleccionada no tiene subcategorías. Puedes continuar al siguiente paso!.
+        </p>
+      )}
     </div>
   );
 }

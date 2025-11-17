@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import FormInput from './FormInput' // Importamos el input reutilizable
 import { ChevronDown } from 'lucide-react'
 import CategorySelect from './CategorySelect'
+import categoriesService from '@/lib/api/categories'
 
 /**
  * Componente que renderiza el formulario para el Paso 2.
@@ -16,6 +17,31 @@ export default function Step2_Info({
   updateListingData,
 }) {
   const [errors, setErrors] = useState({})
+  const [hasSubcategories, setHasSubcategories] = useState(true)
+
+  // Verificar si la categoría padre tiene subcategorías
+  useEffect(() => {
+    const checkSubcategories = async () => {
+      if (!listingData.category || !listingData.type) {
+        setHasSubcategories(true)
+        return
+      }
+
+      try {
+        const data = await categoriesService.getAll({
+          type: listingData.type.toUpperCase(),
+          parent_id: parseInt(listingData.category, 10),
+          limit: 1
+        })
+        setHasSubcategories(data.items && data.items.length > 0)
+      } catch (error) {
+        console.error('Error checking subcategories:', error)
+        setHasSubcategories(true)
+      }
+    }
+
+    checkSubcategories()
+  }, [listingData.category, listingData.type])
 
   const handleChange = e => {
     const { name, value } = e.target
@@ -60,8 +86,9 @@ export default function Step2_Info({
     if (!listingData.location)
       newErrors.location = 'La ubicación es obligatoria.'
     
-    if (!listingData.category_id)
-      newErrors.category_id = 'Selecciona una categoría.'
+    // Solo requerir subcategoría si hay subcategorías disponibles
+    if (hasSubcategories && !listingData.category_id)
+      newErrors.category_id = 'Selecciona una subcategoría.'
     // --- FIN DE CORRECCIÓN FUNCIONAL ---
 
     if (!listingData.condition)
@@ -194,23 +221,18 @@ export default function Step2_Info({
               value={listingData.category_id || ''}
               onChange={handleCategoryChange}
               type={listingData.type || 'MATERIAL'}
-              parentCategoryId={listingData.category ? Number(listingData.category) : null}
+              parentCategoryId={listingData.category ? parseInt(listingData.category, 10) : null}
               disabled={!listingData.category}
               label="Subcategoría"
             />
             {errors.category_id && (
               <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>
             )}
-            {!listingData.category && (
+            {!listingData.category ? (
               <p className="text-amber-600 text-sm mt-1">
                 Primero selecciona una categoría padre en el Paso 1
               </p>
-            )}
-            {listingData.category && (
-              <p className="text-blue-600 text-sm mt-1">
-                DEBUG: Padre seleccionado ID={listingData.category}, tipo={listingData.type}
-              </p>
-            )}
+            ) : null}
           </div>
 
           {/* Selector de Condición */}
