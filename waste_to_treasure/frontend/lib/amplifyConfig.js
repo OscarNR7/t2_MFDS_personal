@@ -1,7 +1,6 @@
 'use client'
 
 import { Amplify } from 'aws-amplify'
-import amplifyConfig from '@/amplifyconfiguration.json'
 
 // Configurar Amplify solo una vez y solo en el cliente
 let isConfigured = false
@@ -26,22 +25,22 @@ export function configureAmplify() {
       redirectSignOut = 'https://main.d20d0dqywsvuyq.amplifyapp.com/'
     }
 
-    // Transformar la configuración al formato que espera Amplify v6
+    // Leer configuración desde variables de entorno
     const config = {
       Auth: {
         Cognito: {
-          userPoolId: amplifyConfig.aws_user_pools_id,
-          userPoolClientId: amplifyConfig.aws_user_pools_web_client_id,
-          region: amplifyConfig.aws_cognito_region,
+          userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID,
+          userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID,
+          region: process.env.NEXT_PUBLIC_COGNITO_REGION,
           
           // Configuración OAuth para federated sign-in (Google, Facebook, etc.)
           loginWith: {
             oauth: {
-              domain: amplifyConfig.oauth.domain,
-              scopes: amplifyConfig.oauth.scope,
+              domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN,
+              scopes: ['openid', 'email', 'profile'],
               redirectSignIn: [redirectSignIn],
               redirectSignOut: [redirectSignOut],
-              responseType: amplifyConfig.oauth.responseType,
+              responseType: 'code',
             },
           },
         },
@@ -54,7 +53,7 @@ export function configureAmplify() {
 
     isConfigured = true
   } catch (error) {
-    // Configuración fallida
+    console.error('Error configuring Amplify:', error)
   }
 }
 
