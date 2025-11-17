@@ -1,3 +1,11 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Endpoints para documentos legales
+#               Lectura pública de documentos activos
+#               Consultar documento por slug
+#               CRUD de documentos para administradores
+#               Requiere rol ADMIN para endpoints de gestión 
+
 """
 Endpoints de la API para LegalDocument.
 

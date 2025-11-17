@@ -1,3 +1,9 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Endpoints administrativos de la plataforma
+#               Gestión de usuarios, publicaciones, reportes y dashboard
+#               Consultas de logs y manejo de excepciones con rol ADMIN
+
 """
 Endpoints de la API para el módulo de Administración.
 

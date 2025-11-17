@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-06
+# Descripción: # Descripción: Modelo que gestiona los documentos legales de la plataforma, 
+#                               como términos y políticas.
+
 """
 Modelo de base de datos para Documentos Legales.
 Implementa la tabla 'legal_documents'    

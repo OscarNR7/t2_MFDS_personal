@@ -1,3 +1,13 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Servicio de reseñas de la plataforma.
+#              Contiene la lógica de negocio para:
+#               - Crear reseñas verificadas por compra.
+#               - Validar existencia de entidades.
+#               - Consultar reseñas por listing, vendedor o usuario.
+#               - Obtener estadísticas y resúmenes.
+#               - Manejar excepciones y logging de acciones.
+
 """
 Capa de servicio para Review.
 

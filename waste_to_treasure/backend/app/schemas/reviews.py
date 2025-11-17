@@ -1,3 +1,7 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Esquemas Pydantic para la creación, lectura y estadísticas de reseñas de productos.
+
 """
 Esquemas de Pydantic para el modelo Review.
 

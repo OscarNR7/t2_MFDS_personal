@@ -1,3 +1,12 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Endpoints para preguntas frecuentes
+#               Lectura pública de FAQs
+#               Listar FAQs agrupadas por categoría
+#               Consultar FAQ por ID
+#               CRUD de FAQs para administradores
+#               Requiere rol ADMIN para endpoints de gestión
+
 """
 Endpoints de la API para FAQItem.
 

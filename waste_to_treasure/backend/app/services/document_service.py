@@ -1,3 +1,14 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Servicio de gestión de documentos de la plataforma.
+#              Contiene la lógica de negocio para:
+#               - Crear, actualizar y eliminar documentos legales.
+#               - Crear, actualizar y eliminar FAQs.
+#               - Validar existencia y unicidad de documentos y FAQs.
+#               - Consultar documentos legales por slug y FAQs por categoría.
+#               - Agrupar FAQs por categoría.
+#               - Manejar excepciones y logging de acciones.
+
 """
 Capa de servicio para documentos (Legal y FAQ).
 

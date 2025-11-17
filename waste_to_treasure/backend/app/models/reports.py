@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Modelo que registra los reportes realizados por usuarios sobre listings, 
+#               usuarios u órdenes.
+
 """
 Modelo de base de datos para Reports.
 Implementa la tabla 'reports'

@@ -1,3 +1,10 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Endpoints para reportes de usuarios
+#               Crear reportes sobre contenido, usuarios u órdenes
+#               Consultar mis reportes o reportes específicos
+#               Requiere autenticación y manejo de excepciones
+
 """
 Endpoints de la API para Report.
 

@@ -1,3 +1,11 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Endpoints para reseñas de productos
+#              Crear reseñas verificadas por compra
+#              Consultar reseñas de publicaciones o vendedores
+#              Listar mis reseñas y obtener estadísticas
+#              Requiere autenticación para crear o listar mis reseñas
+
 """
 Endpoints de la API para Review.
 

@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-06
+# Descripción: Descripción: Modelo que almacena preguntas frecuentes y sus 
+#               respuestas para la plataforma.
+
 """
 Modelo de base de datos para los iteams de Preguntas Frecuentes.
 Implementa la tabla 'faq_items'

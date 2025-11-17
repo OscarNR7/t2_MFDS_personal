@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Esquemas Pydantic para creación, actualización y lectura de documentos legales 
+#               como términos de servicio, políticas de privacidad y otros textos legales.
+
 """
 Esquemas de Pydantic para el modelo LegalDocument.
 

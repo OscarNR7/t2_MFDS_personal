@@ -1,3 +1,13 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Servicio de reportes de la plataforma.
+#              Contiene la lógica de negocio para:
+#               - Crear reportes de listings, usuarios u órdenes.
+#               - Validar existencia de entidades reportadas.
+#               - Consultar reportes por usuario o por ID.
+#               - Obtener estadísticas de reportes para administración.
+#               - Manejar excepciones y logging de acciones.
+
 """
 Capa de servicio para Report.
 

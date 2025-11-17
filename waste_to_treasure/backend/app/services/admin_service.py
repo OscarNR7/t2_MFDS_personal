@@ -1,3 +1,11 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 2025-11-08
+# Descripción: Servicio de administración para la plataforma.
+#              Contiene lógica de negocio para:
+#               - Gestión y estadísticas de usuarios, listings, órdenes y reportes.
+#               - Moderación de listings y reportes.
+#               - Registro de acciones administrativas (logs).
+
 """
 Servicio para funcionalidades de administración.
 Contiene la lógica de negocio para moderación y estadísticas.
