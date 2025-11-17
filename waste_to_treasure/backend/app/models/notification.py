@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 06/11/2024
+# Descripción: Modelo de base de datos para notificaciones in-app de usuarios.
+#              Gestiona alertas del sistema tipo campanita incluyendo contenido,
+#              tipo, prioridad, estado de lectura y enlaces de redirección.
+
 """
 # Autor: Alejandro Campa Alonso 215833
 
@@ -110,43 +116,29 @@ class Notification(BaseModel):
     # MÉTODOS DE INSTANCIA
     def mark_as_read(self) -> None:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
-        Descripción: Marca la notificación como leída.
-        
+        Autor: Arturo Perez Gonzalez
+        Descripción: Marca la notificación como leída por el usuario.
         Parámetros:
-            self: Instancia de la notificación.
-        
+            Ninguno
         Retorna:
-            None. Modifica el atributo is_read a True.
+            None
         """
         self.is_read = True
     
     def mark_as_unread(self) -> None:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
-        Descripción: Marca la notificación como no leída.
-        
-        Parámetros:
-            self: Instancia de la notificación.
-        
-        Retorna:
-            None. Modifica el atributo is_read a False.
+        Marca la notificación como no leída.
         """
         self.is_read = False
     
     def get_icon_class(self) -> str:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
+        Autor: Arturo Perez Gonzalez
         Descripción: Obtiene la clase CSS del ícono según el tipo de notificación.
-        
         Parámetros:
-            self: Instancia de la notificación.
-        
+            Ninguno
         Retorna:
-            str: Nombre de clase de ícono para el frontend (ej. 'shopping-cart', 'handshake').
+            str: Nombre de clase de ícono para renderizar en el frontend (ej: "shopping-cart").
         """
         icon_map = {
             "ORDER": "shopping-cart",
@@ -163,15 +155,12 @@ class Notification(BaseModel):
     
     def get_priority_badge(self) -> str:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
-        Descripción: Obtiene el badge (etiqueta) de prioridad para la interfaz de usuario.
-        
+        Autor: Arturo Perez Gonzalez
+        Descripción: Obtiene el badge de prioridad para renderizar en la UI.
         Parámetros:
-            self: Instancia de la notificación.
-        
+            Ninguno
         Retorna:
-            str: Clase CSS para el badge de prioridad (ej. 'badge-warning', 'badge-secondary').
+            str: Clase CSS para el badge de prioridad (ej: "badge-warning" para HIGH).
         """
         badge_map = {
             "LOW": "badge-secondary",
@@ -182,20 +171,16 @@ class Notification(BaseModel):
     
     def truncate_content(self, max_length: int = 100) -> str:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
-        Descripción: Trunca el contenido de la notificación para vista previa.
-        
+        Autor: Arturo Perez Gonzalez
+        Descripción: Trunca el contenido de la notificación para vista previa en listas.
         Parámetros:
-            self: Instancia de la notificación.
-            max_length (int): Longitud máxima del texto. Por defecto 100 caracteres.
-        
+            max_length (int): Longitud máxima del texto permitida (default: 100).
         Retorna:
-            str: Contenido truncado con elipsis (...) al final si fue necesario truncar.
+            str: Contenido truncado con elipsis "..." si excede max_length, o contenido completo si no.
         """
         if len(self.content) <= max_length:
             return self.content
-        
+
         return self.content[:max_length - 3] + "..."
     
     def __repr__(self) -> str:

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useAuthGuard } from '@/hooks/useAdminGuard'
 import { useSubscription } from '@/hooks/useSubscription'
 import { useConfirmStore } from '@/stores/useConfirmStore'
-import SubscriptionCardForm from '@/components/checkout/SubscriptionCardForm'
+import { useCheckoutStore } from '@/stores/useCheckoutStore'
+import AddCreditCardForm from '@/components/checkout/AddCreditCardForm'
 import PaymentMethodCard from '@/components/checkout/PaymentMethodCard'
+import { paymentsService } from '@/lib/api/payments'
 import { CreditCard, Plus, Check } from 'lucide-react'
 
 export default function SubscriptionPaymentPage() {
@@ -15,70 +17,153 @@ export default function SubscriptionPaymentPage() {
   const { subscribe } = useSubscription(false)
   const openConfirmModal = useConfirmStore(state => state.open)
 
-  const [selectedPlan, setSelectedPlan] = useState(null)
-  const [paymentMethodId, setPaymentMethodId] = useState(null)
-  const [savedCard, setSavedCard] = useState(null)
-  const [isAddCardVisible, setIsAddCardVisible] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
+  // Usar el store compartido de checkout para las tarjetas
+  const {
+    paymentMethodId,
+    setPaymentMethod,
+    savedCard,
+    setSavedCard,
+    clearSavedCard
+  } = useCheckoutStore()
 
-  // Cargar el plan seleccionado desde sessionStorage
+  const [savedCards, setSavedCards] = useState([])
+  const [isLoadingCards, setIsLoadingCards] = useState(true)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isCardLoading, setIsCardLoading] = useState(false)
+
+  // Initialize isAddCardVisible based on whether we have saved cards
+  const [isAddCardVisible, setIsAddCardVisible] = useState(false)
+
+  // Cargar el plan seleccionado desde sessionStorage usando lazy initialization
+  const [selectedPlan, setSelectedPlan] = useState(() => {
+    if (typeof window === 'undefined') return null
+    const planData = sessionStorage.getItem('selectedSubscriptionPlan')
+    if (!planData) return null
+    try {
+      return JSON.parse(planData)
+    } catch (error) {
+      console.error('Error al cargar plan:', error)
+      return null
+    }
+  })
+
+  // Cargar tarjetas guardadas al montar el componente
   useEffect(() => {
     if (!isAuthorized) return
 
-    const planData = sessionStorage.getItem('selectedSubscriptionPlan')
-    if (!planData) {
+    const loadSavedCards = async () => {
+      try {
+        setIsLoadingCards(true)
+        const cards = await paymentsService.listPaymentMethods()
+        setSavedCards(cards)
+
+        // Si hay tarjetas y hay una seleccionada en el store, verificar que existe
+        if (cards.length > 0) {
+          if (savedCard) {
+            const cardExists = cards.find(c => c.id === savedCard.id)
+            if (cardExists) {
+              // La tarjeta guardada en el store existe en Stripe
+              setPaymentMethod(savedCard.id)
+            } else {
+              // La tarjeta del store ya no existe, seleccionar la primera disponible
+              const firstCard = cards[0]
+              const newCard = {
+                id: firstCard.id,
+                last4: firstCard.card.last4,
+                brand: firstCard.card.brand
+              }
+              setSavedCard(newCard)
+              setPaymentMethod(firstCard.id)
+            }
+          } else {
+            // No hay tarjeta seleccionada, seleccionar la primera
+            const firstCard = cards[0]
+            const newCard = {
+              id: firstCard.id,
+              last4: firstCard.card.last4,
+              brand: firstCard.card.brand
+            }
+            setSavedCard(newCard)
+            setPaymentMethod(firstCard.id)
+          }
+        } else {
+          // No hay tarjetas guardadas, mostrar formulario
+          setIsAddCardVisible(true)
+        }
+      } catch (error) {
+        console.error('Error cargando tarjetas:', error)
+        setIsAddCardVisible(true)
+      } finally {
+        setIsLoadingCards(false)
+      }
+    }
+
+    loadSavedCards()
+  }, [isAuthorized])
+
+  // Cargar el plan y verificar autorización
+  useEffect(() => {
+    if (!isAuthorized) return
+
+    if (!selectedPlan) {
       router.push('/dashboard/subscription/select')
+    }
+  }, [isAuthorized, router, selectedPlan])
+
+  const handleSaveCard = async (paymentMethodId, last4, brand) => {
+    // Verificar si la tarjeta ya existe
+    const cardExists = savedCards.find(c => c.card.last4 === last4)
+    if (cardExists) {
+      openConfirmModal(
+        'Tarjeta ya Guardada',
+        `La tarjeta que termina en **** ${last4} ya está guardada como tu método de pago.`,
+        () => {
+          const newCard = {
+            id: cardExists.id,
+            last4: cardExists.card.last4,
+            brand: cardExists.card.brand
+          }
+          setSavedCard(newCard)
+          setPaymentMethod(cardExists.id)
+          setIsAddCardVisible(false)
+        },
+        { danger: false, confirmText: 'Usar esta tarjeta' }
+      )
       return
     }
 
-    try {
-      const plan = JSON.parse(planData)
-      setSelectedPlan(plan)
-    } catch (error) {
-      console.error('Error al cargar plan:', error)
-      router.push('/dashboard/subscription/select')
-    }
-
-    // Si no hay tarjeta guardada, mostrar formulario
-    if (!savedCard) {
-      setIsAddCardVisible(true)
-    }
-  }, [isAuthorized, router, savedCard])
-
-  // Sincronizar la selección si hay una tarjeta guardada
-  useEffect(() => {
-    if (!paymentMethodId && savedCard) {
-      setPaymentMethodId(savedCard.id)
-    }
-  }, [savedCard, paymentMethodId])
-
-  const handleSaveCard = async (tokenId, last4) => {
     setIsAddCardVisible(false)
-    setIsProcessing(true)
+    setIsCardLoading(true)
     const startTime = Date.now()
 
     try {
-      // Simular guardado de tarjeta
-      await new Promise(resolve => setTimeout(resolve, 500))
-
+      // El PaymentMethod ya está guardado en Stripe gracias al SetupIntent
+      // Solo necesitamos guardarlo en el estado local
       const newCard = {
-        id: tokenId,  // Ahora es el token ID (tok_xxx)
+        id: paymentMethodId,
         last4: last4,
+        brand: brand,
       }
 
-      // Timer de 2 segundos
+      // Timer de 2 segundos para UX
       const elapsedTime = Date.now() - startTime
       if (elapsedTime < 2000) {
         await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime))
       }
 
+      setIsCardLoading(false)
+
+      // Guardar en el store y actualizar la lista
       setSavedCard(newCard)
-      setPaymentMethodId(newCard.id)
-      setIsProcessing(false)
+      setPaymentMethod(newCard.id)
+
+      // Recargar la lista de tarjetas desde Stripe
+      const cards = await paymentsService.listPaymentMethods()
+      setSavedCards(cards)
 
       openConfirmModal(
         'Tarjeta Validada',
-        `Tu tarjeta terminada en ${last4} ha sido validada correctamente.`,
+        `Tu tarjeta ${brand.toUpperCase()} terminada en ${last4} ha sido validada correctamente.`,
         () => {},
         { danger: false, confirmText: 'Continuar' }
       )
@@ -87,25 +172,67 @@ export default function SubscriptionPaymentPage() {
       if (elapsedTime < 2000) {
         await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime))
       }
-      setIsProcessing(false)
+      setIsCardLoading(false)
 
+      const errorMessage = error.response?.data?.detail || error.message || 'Intenta de nuevo.'
       openConfirmModal(
         'Error al Validar Tarjeta',
-        `No se pudo validar tu método de pago. ${error.message || 'Intenta de nuevo.'}`,
+        `No se pudo validar tu método de pago. ${errorMessage}`,
         () => {},
         { danger: true, confirmText: 'Entendido' }
       )
     }
   }
 
-  const handleDeleteCard = () => {
+  const handleSelectCard = (card) => {
+    const selectedCard = {
+      id: card.id,
+      last4: card.card.last4,
+      brand: card.card.brand
+    }
+    setSavedCard(selectedCard)
+    setPaymentMethod(card.id)
+  }
+
+  const handleDeleteCard = (cardId, last4) => {
     openConfirmModal(
       'Eliminar Tarjeta',
-      `¿Estás seguro de que deseas eliminar la tarjeta que termina en **** ${savedCard.last4}?`,
-      () => {
-        setSavedCard(null)
-        setPaymentMethodId(null)
-        setIsAddCardVisible(true)
+      `¿Estás seguro de que deseas eliminar la tarjeta que termina en **** ${last4}?`,
+      async () => {
+        setIsCardLoading(true)
+        try {
+          // Eliminar la tarjeta en Stripe
+          await paymentsService.deletePaymentMethod(cardId)
+
+          // Actualizar el estado local
+          const updatedCards = savedCards.filter(c => c.id !== cardId)
+          setSavedCards(updatedCards)
+
+          // Si la tarjeta eliminada era la seleccionada
+          if (savedCard?.id === cardId) {
+            if (updatedCards.length > 0) {
+              // Seleccionar la primera tarjeta disponible
+              const firstCard = updatedCards[0]
+              const newCard = {
+                id: firstCard.id,
+                last4: firstCard.card.last4,
+                brand: firstCard.card.brand
+              }
+              setSavedCard(newCard)
+              setPaymentMethod(firstCard.id)
+            } else {
+              // No quedan tarjetas, limpiar y mostrar formulario
+              clearSavedCard()
+              setIsAddCardVisible(true)
+            }
+          }
+
+          setIsCardLoading(false)
+        } catch (error) {
+          setIsCardLoading(false)
+          const errorMessage = error.response?.data?.detail || 'No se pudo eliminar la tarjeta.'
+          openConfirmModal('Error', errorMessage, () => {}, { danger: true, confirmText: 'Entendido' })
+        }
       },
       { danger: true, confirmText: 'Eliminar' }
     )
@@ -141,7 +268,6 @@ export default function SubscriptionPaymentPage() {
       // Limpiar sessionStorage y tarjeta guardada
       sessionStorage.removeItem('selectedSubscriptionPlan')
       setSavedCard(null)
-      setPaymentMethodId(null)
 
       setIsProcessing(false)
 
@@ -166,7 +292,7 @@ export default function SubscriptionPaymentPage() {
     }
   }
 
-  if (isAuthLoading || !isAuthorized) {
+  if (isAuthLoading || !isAuthorized || isLoadingCards) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -187,11 +313,13 @@ export default function SubscriptionPaymentPage() {
   return (
     <div className="min-h-screen bg-neutral-100 py-12">
       {/* Modal de Carga */}
-      {isProcessing && (
+      {(isProcessing || isCardLoading) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
           <div className="flex flex-col items-center gap-4 rounded-lg bg-white p-8 shadow-xl">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-            <p className="font-semibold text-neutral-700">Procesando suscripción...</p>
+            <p className="font-semibold text-neutral-700">
+              {isProcessing ? 'Procesando suscripción...' : 'Procesando...'}
+            </p>
           </div>
         </div>
       )}
@@ -212,32 +340,37 @@ export default function SubscriptionPaymentPage() {
           {/* Columna Izquierda: Método de Pago */}
           <div className="w-full lg:flex-[4] rounded-lg bg-white p-8 shadow-2xl">
             <h2 className="border-b border-neutral-300 pb-4 font-poppins text-3xl font-semibold text-black">
-              Tu tarjeta de pago
+              Tus tarjetas de pago
             </h2>
 
             <div className="mt-6 space-y-4">
-              {/* Mostrar la tarjeta guardada si existe */}
-              {savedCard ? (
+              {/* Mostrar todas las tarjetas guardadas */}
+              {savedCards.length > 0 && !isAddCardVisible && (
+                <>
+                  {savedCards.map((card) => (
+                    <PaymentMethodCard
+                      key={card.id}
+                      icon={CreditCard}
+                      title={`Tarjeta ${card.card.brand.toUpperCase()}`}
+                      description={`Terminación **** ${card.card.last4}`}
+                      isSelected={paymentMethodId === card.id}
+                      onSelect={() => handleSelectCard(card)}
+                      onDelete={() => handleDeleteCard(card.id, card.card.last4)}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* Si no hay tarjetas y no está mostrando el formulario */}
+              {savedCards.length === 0 && !isAddCardVisible && (
                 <PaymentMethodCard
-                  key={savedCard.id}
                   icon={CreditCard}
                   title="Tarjeta de crédito o débito"
-                  description={`Terminación **** ${savedCard.last4}`}
-                  isSelected={paymentMethodId === savedCard.id}
-                  onSelect={() => setPaymentMethodId(savedCard.id)}
-                  onDelete={handleDeleteCard}
+                  description="No hay tarjetas registradas"
+                  isSelected={false}
+                  onSelect={() => setIsAddCardVisible(true)}
+                  isDisabled={true}
                 />
-              ) : (
-                !isAddCardVisible && (
-                  <PaymentMethodCard
-                    icon={CreditCard}
-                    title="Tarjeta de crédito o débito"
-                    description="No hay tarjetas registradas"
-                    isSelected={false}
-                    onSelect={() => setIsAddCardVisible(true)}
-                    isDisabled={true}
-                  />
-                )
               )}
 
               {/* Botón para agregar nueva tarjeta */}
@@ -248,16 +381,16 @@ export default function SubscriptionPaymentPage() {
                 >
                   <Plus size={20} />
                   <span className="font-roboto text-xl font-bold">
-                    {savedCard ? 'Usar otra tarjeta' : 'Agregar nueva tarjeta'}
+                    {savedCards.length > 0 ? 'Agregar otra tarjeta' : 'Agregar nueva tarjeta'}
                   </span>
                 </button>
               )}
 
               {/* Formulario para agregar tarjeta */}
               {isAddCardVisible && (
-                <SubscriptionCardForm
+                <AddCreditCardForm
                   onSave={handleSaveCard}
-                  onCancel={savedCard ? () => setIsAddCardVisible(false) : undefined}
+                  onCancel={savedCards.length > 0 ? () => setIsAddCardVisible(false) : undefined}
                 />
               )}
             </div>

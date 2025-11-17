@@ -7,6 +7,13 @@
 Implementa la tabla 'orders' que almacena las órdenes de compra completadas (transacciones).
 Define el estado de la orden, montos totales, información de pago y relaciones con usuarios,
 items de orden, reportes y transacciones de pago.
+Modelo de base de datos para Order.
+
+Implementa la tabla 'orders'
+Autor: Oscar Alonso Nava Rivera
+Fecha: 04/11/2025
+Descripción: Modelo Order y comportamiento asociado (estados, totals).
+Almacena las órdenes de compra completadas (transacciones).
 """
 import uuid
 from typing import Optional, List, TYPE_CHECKING
@@ -167,18 +174,10 @@ class Order(BaseModel):
     # MÉTODOS DE INSTANCIA
     def calculate_totals(self) -> None:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
+        Autor: Oscar Alonso Nava Rivera
         Descripción: Calcula y actualiza subtotal, comisión y total basándose en los order_items.
-        La comisión es del 10% según especificación GEMINI.md (RF-25).
-        
-        Parámetros:
-            self: Instancia de la orden.
-        
-        Retorna:
-            None. Modifica los atributos subtotal, commission_amount y total_amount.
-        
-        Nota:
+
+        Note:
             Este método debe llamarse después de agregar/modificar items.
         """
         if not self.order_items:
@@ -201,57 +200,41 @@ class Order(BaseModel):
     
     def get_item_count(self) -> int:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
+        Autor: Oscar Alonso Nava Rivera
         Descripción: Obtiene el número total de items en la orden.
-        
-        Parámetros:
-            self: Instancia de la orden.
-        
-        Retorna:
-            int: Cantidad total de items (sumando las cantidades de cada OrderItem).
+
+        Returns:
+            Cantidad total de items (sumando las cantidades de cada OrderItem).
         """
         return sum(item.quantity for item in self.order_items)
     
     def can_be_cancelled(self) -> bool:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
+        Autor: Oscar Alonso Nava Rivera
         Descripción: Verifica si la orden puede ser cancelada.
-        
-        Parámetros:
-            self: Instancia de la orden.
-        
-        Retorna:
-            bool: True si la orden está en estado PAID (aún no enviada), False en caso contrario.
+
+        Returns:
+            True si la orden está en estado PAID (aún no enviada).
         """
         return self.order_status == OrderStatusEnum.PAID
     
     def can_be_reviewed(self) -> bool:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
+        Autor: Oscar Alonso Nava Rivera
         Descripción: Verifica si la orden puede ser reseñada.
-        
-        Parámetros:
-            self: Instancia de la orden.
-        
-        Retorna:
-            bool: True si la orden está en estado DELIVERED, False en caso contrario.
+
+        Returns:
+            True si la orden está en estado DELIVERED.
         """
         return self.order_status == OrderStatusEnum.DELIVERED
     
     def get_status_display(self) -> str:
         """
-        Autor: Alejandro Campa Alonso 215833
-        
-        Descripción: Obtiene el estado de la orden en formato legible en español.
-        
-        Parámetros:
-            self: Instancia de la orden.
-        
-        Retorna:
-            str: String con el estado traducido al español (ej. 'Pagada', 'Entregada').
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Obtiene el estado de la orden en formato legible.
+
+        Returns:
+            String con el estado traducido al español.
         """
         status_map = {
             OrderStatusEnum.PAID: "Pagada",
@@ -263,6 +246,10 @@ class Order(BaseModel):
         return status_map.get(self.order_status, self.order_status.value)
     
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Representación en cadena de la orden para debugging.
+        """
         return (
             f"Order(order_id={self.order_id!r}, "
             f"buyer_id={self.buyer_id!r}, "

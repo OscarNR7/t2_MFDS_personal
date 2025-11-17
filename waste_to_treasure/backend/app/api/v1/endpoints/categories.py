@@ -4,6 +4,9 @@ Endpoints de la API para Category.
 Implementa operaciones CRUD sobre categorías de materiales y productos.
 Todos los endpoints de modificación requieren permisos de administrador.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 05/11/2025
+# Descripción: Rutas de API para gestión de categorías (CRUD, list, tree)
 import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
@@ -52,6 +55,7 @@ async def create_category(
     admin: User = Depends(require_admin)
 ) -> CategoryRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Crea una nueva categoría.
     
     **Requiere**: Rol ADMIN
@@ -114,6 +118,7 @@ async def get_categories(
     db: AsyncSession = Depends(get_async_db)
 ) -> CategoryList:
     """
+    Autor: Oscar Alonso Nava Rivera
     Lista categorías con filtros opcionales.
     
     **Acceso**: Público (no requiere autenticación)
@@ -157,8 +162,27 @@ async def get_categories(
     # Calcular página actual
     page = (skip // limit) + 1 if limit > 0 else 1
     
+    # Convertir a CategoryRead y agregar conteos
+    items_with_counts = []
+    for category in categories:
+        # Crear diccionario con todos los datos de la categoría
+        category_dict = {
+            "category_id": category.category_id,
+            "name": category.name,
+            "slug": category.slug,
+            "type": category.type,
+            "parent_category_id": category.parent_category_id,
+            "created_at": category.created_at,
+            "updated_at": category.updated_at,
+            "full_path": getattr(category, 'full_path', None),
+            # Añadir conteos de listings y children
+            "listing_count": len(category.listings) if hasattr(category, 'listings') and category.listings else 0,
+            "children_count": len(category.children) if hasattr(category, 'children') and category.children else 0
+        }
+        items_with_counts.append(CategoryRead(**category_dict))
+    
     return CategoryList(
-        items=categories,
+        items=items_with_counts,
         total=total,
         page=page,
         page_size=limit
@@ -178,6 +202,7 @@ async def get_category_tree(
     db: AsyncSession = Depends(get_async_db)
 ) -> CategoryTree:
     """
+    Autor: Oscar Alonso Nava Rivera
     Obtiene el árbol jerárquico completo de categorías.
     
     **Acceso**: Público (no requiere autenticación)
@@ -233,6 +258,7 @@ async def get_category(
     db: AsyncSession = Depends(get_async_db)
 ) -> CategoryRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Obtiene una categoría específica por su ID.
     
     **Acceso**: Público (no requiere autenticación)
@@ -286,6 +312,7 @@ async def update_category(
     admin: User = Depends(require_admin)
 ) -> CategoryRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Actualiza una categoría existente (actualización parcial).
     
     **Requiere**: Rol ADMIN
@@ -336,6 +363,7 @@ async def delete_category(
     admin: User = Depends(require_admin)
 ) -> None:
     """
+    Autor: Oscar Alonso Nava Rivera
     Elimina una categoría del sistema.
     
     **Requiere**: Rol ADMIN

@@ -46,8 +46,8 @@ class SubscriptionService:
         return list(result.scalars().all())
 
     async def get_active_subscription(
-        self, 
-        db: AsyncSession, 
+        self,
+        db: AsyncSession,
         user: User
     ) -> Optional[Subscription]:
         """
@@ -124,12 +124,13 @@ class SubscriptionService:
             active_sub.status = SubscriptionStatus.CANCELLED
 
         # 4. (SIMULADO) Procesar pago con Stripe
-        if not payment_token.startswith("tok_"):
+        # Ahora aceptamos PaymentMethods (pm_) además de tokens (tok_)
+        if not (payment_token.startswith("tok_") or payment_token.startswith("pm_")):
             raise HTTPException(status_code=400, detail="Token de pago inválido (simulación)")
-        
+
         # (SIMULADO) Stripe devuelve un ID de suscripción
         simulated_gateway_sub_id = f"sub_sim_{uuid.uuid4().hex[:12]}"
-        logger.info(f"Suscripción (simulada) creada en pasarela: {simulated_gateway_sub_id}")
+        logger.info(f"Suscripción (simulada) creada en pasarela: {simulated_gateway_sub_id} con payment_method: {payment_token}")
 
         # 5. Calcular fechas
         start_date = datetime.now(timezone.utc)
@@ -189,7 +190,7 @@ class SubscriptionService:
         Returns:
             La suscripción cancelada.
         """
-        
+
         active_sub = await self.get_active_subscription(db, user)
         if not active_sub:
             raise HTTPException(status_code=404, detail="No se encontró una suscripción activa para cancelar")
@@ -200,8 +201,6 @@ class SubscriptionService:
 
         # Actualizar estado en la BD
         active_sub.status = SubscriptionStatus.CANCELLED
-        # Opcional: ajustar next_billing_date según la lógica de Stripe
-        # (ej. si permanece activa hasta el final del ciclo de pago)
 
         await db.commit()
         await db.refresh(active_sub)

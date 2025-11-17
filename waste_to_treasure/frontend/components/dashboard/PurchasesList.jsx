@@ -4,6 +4,13 @@
  * Descripción: tabla paginada de compras del usuario con información de orden, estado, fechas y acciones para ver detalles de cada compra
  */
 
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Descripción: Componente que muestra la lista de compras del usuario con 
+//              paginación, manejo de estados (cargando, error), visualización de detalles de cada compra y 
+//              representación del estado de cada pedido con colores y etiquetas.
+
+
 'use client';
 
 import { usePurchases } from '@/hooks/usePurchases';
