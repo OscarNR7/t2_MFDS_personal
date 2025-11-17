@@ -8,7 +8,7 @@ Este servicio está completamente asíncrono para aprovechar la arquitectura
 de FastAPI y SQLAlchemy 2.0 async, mejorando el rendimiento y escalabilidad.
 """
 # Autor: Oscar Alonso Nava Rivera
-# Fecha: 16/11/2025
+# Fecha: 05/11/2025
 # Descripción: Lógica de negocio para creación, actualización y consulta de categorías.
 import logging
 import re
@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 def generate_slug(name: str) -> str:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Genera un slug URL-friendly a partir del nombre dado.
     Genera un slug URL-friendly a partir del nombre de la categoría.
     
     Args:
@@ -60,6 +61,7 @@ async def ensure_unique_slug(
 ) -> str:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Asegura que el slug sea único en la base de datos; añade sufijo si es necesario.
     Asegura que el slug sea único en la base de datos.
     
     Si el slug ya existe, añade un sufijo numérico (ej: madera-reciclada-2).
@@ -102,6 +104,7 @@ async def validate_parent_category(
 ) -> Category:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Valida existencia y tipo de la categoría padre y previene ciclos.
     Valida que la categoría padre existe y es del mismo tipo.
     
     Args:
@@ -149,6 +152,7 @@ async def validate_parent_category(
 async def get_all_descendant_ids(db: AsyncSession, category_id: int) -> List[int]:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Obtiene recursivamente todos los IDs de categorías descendientes.
     Obtiene recursivamente todos los IDs de categorías descendientes.
     
     Args:
@@ -177,6 +181,7 @@ async def get_all_descendant_ids(db: AsyncSession, category_id: int) -> List[int
 async def create_category(db: AsyncSession, category_data: CategoryCreate) -> Category:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Crea una nueva categoría en la base de datos, generando slug y validando parent.
     Crea una nueva categoría.
     
     Args:
@@ -252,6 +257,7 @@ async def create_category(db: AsyncSession, category_data: CategoryCreate) -> Ca
 async def get_category_by_id(db: AsyncSession, category_id: int) -> Category:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Obtiene una categoría por su ID sin cargar relaciones pesadas.
     Obtiene una categoría por su ID (sin cargar relaciones).
     
     Args:
@@ -287,6 +293,7 @@ async def get_categories(
 ) -> tuple[List[Category], int]:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Retorna una lista paginada de categorías con filtros opcionales.
     Obtiene una lista paginada de categorías con filtros opcionales.
     
     Args:
@@ -345,6 +352,7 @@ async def update_category(
 ) -> Category:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Actualiza campos de una categoría existente y maneja validaciones.
     Actualiza una categoría existente.
     
     Args:
@@ -401,6 +409,7 @@ async def update_category(
 async def delete_category(db: AsyncSession, category_id: int) -> None:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Elimina una categoría después de validar que no tenga dependencias.
     Elimina una categoría.
     
     Args:
@@ -463,6 +472,7 @@ async def delete_category(db: AsyncSession, category_id: int) -> None:
 async def get_category_tree(db: AsyncSession) -> dict:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Construye y devuelve el árbol jerárquico completo de categorías por tipo.
     Construye el árbol jerárquico completo de categorías.
     
     Utiliza eager loading (selectinload) para cargar recursivamente todas

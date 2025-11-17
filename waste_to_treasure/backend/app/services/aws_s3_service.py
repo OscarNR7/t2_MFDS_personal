@@ -38,6 +38,8 @@ class S3Service:
     """
     Autor: Oscar Alonso Nava Rivera
 
+    Descripción: Servicio para gestionar uploads y accesos a archivos en Amazon S3.
+
     Servicio para gestionar archivos en Amazon S3.
     
     Example:

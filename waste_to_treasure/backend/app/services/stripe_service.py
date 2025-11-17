@@ -8,9 +8,14 @@ Implementa:
 - Procesamiento de webhooks
 - Reembolsos
 
+Autor: Oscar Alonso Nava Rivera
+Fecha: 08/11/2025
+Descripción: Servicio para integración con Stripe (customers, payments, webhooks)
+
 Documentación: https://docs.stripe.com/api?api-version=2025-10-29
 """
-# Fecha: 06/11/2025
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 08/11/2025
 # Descripción: Servicio para integración con Stripe (customers, payments, webhooks)
 import logging
 from typing import Optional, Dict, Any, List
@@ -27,7 +32,10 @@ settings = get_settings()
 class StripeService:
     """
     Servicio para interactuar con Stripe API v2025-10-29.
-    
+
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Capa de servicio para integrar con Stripe (clientes, pagos, webhooks, reembolsos).
+
     Example:
         `
         from app.services.stripe_service import stripe_service

@@ -4,7 +4,7 @@ Endpoints para webhooks de stripe
 Procesa eventos de stripe (pagos, cancelaciones, reembolsos)
 """
 # Autor: Oscar Alonso Nava Rivera
-# Fecha: 16/11/2025
+# Fecha: 08/11/2025
 # Descripción: Recibir y procesar webhooks de Stripe
 import logging
 from fastapi import APIRouter, Request, HTTPException, status

@@ -4,7 +4,7 @@ Endpoints de la API para Pagos con Stripe.
 Implementa:
 """
 # Autor: Oscar Alonso Nava Rivera
-# Fecha: 16/11/2025
+# Fecha: 08/11/2025
 # Descripción: Endpoints para pagos (webhooks, checkout y reembolsos)
 import logging
 from typing import Annotated, Optional, List

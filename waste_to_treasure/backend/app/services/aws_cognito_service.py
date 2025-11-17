@@ -33,6 +33,8 @@ settings = get_settings()
 class CognitoService:
     """
     Autor: Oscar Alonso Nava Rivera
+    Descripción: Servicio para sincronizar y administrar usuarios a través de AWS Cognito.
+
     Servicio para interactuar con AWS Cognito User Pool.
     
     Example:

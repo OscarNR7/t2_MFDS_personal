@@ -1,5 +1,5 @@
 # Autor: Oscar Alonso Nava Rivera
-# Fecha: 16/11/2025
+# Fecha: 06/11/2025
 # Descripción: Endpoints para gestión de usuarios.
 """
 Endpoints para gestión de usuarios.

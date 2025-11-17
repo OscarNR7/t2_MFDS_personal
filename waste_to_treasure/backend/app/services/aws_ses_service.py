@@ -39,7 +39,8 @@ settings = get_settings()
 class SESService:
     """
     Autor: Oscar Alonso Nava Rivera
-    
+    Descripción: Servicio para enviar emails transaccionales usando Amazon SES (modo mock por defecto).
+
     Servicio para envío de emails con Amazon SES.
     
     Example:
