@@ -89,6 +89,9 @@ async def create_address(
         200: {"description": "Lista de direcciones obtenida exitosamente"},
         401: {"description": "No autenticado"},
     }
+    # Autor: Oscar Alonso Nava Rivera
+    # Fecha: 16/11/2025
+    # Descripción: Endpoints para Address Book (CRUD)
 )
 @router.get(
     "/",
