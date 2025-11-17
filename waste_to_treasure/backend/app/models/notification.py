@@ -5,10 +5,13 @@
 #              tipo, prioridad, estado de lectura y enlaces de redirección.
 
 """
-Modelo de base de datos para Notification.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'notifications'
-Almacena alertas in-app (campanita) para los usuarios.
+# Fecha: 2025-11-06
+
+# Descripción: Modelo de base de datos para Notification.
+Implementa la tabla 'notifications' que almacena alertas in-app (campanita) para los usuarios.
+Cada notificación tiene un tipo, contenido, prioridad, estado de lectura y URL de destino.
 """
 import uuid
 from typing import TYPE_CHECKING, Optional
@@ -124,12 +127,7 @@ class Notification(BaseModel):
     
     def mark_as_unread(self) -> None:
         """
-        Autor: Arturo Perez Gonzalez
-        Descripción: Marca la notificación como no leída.
-        Parámetros:
-            Ninguno
-        Retorna:
-            None
+        Marca la notificación como no leída.
         """
         self.is_read = False
     

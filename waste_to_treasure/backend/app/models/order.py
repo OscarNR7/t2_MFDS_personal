@@ -1,4 +1,12 @@
 """
+# Autor: Alejandro Campa Alonso 215833
+
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para Order.
+Implementa la tabla 'orders' que almacena las órdenes de compra completadas (transacciones).
+Define el estado de la orden, montos totales, información de pago y relaciones con usuarios,
+items de orden, reportes y transacciones de pago.
 Modelo de base de datos para Order.
 
 Implementa la tabla 'orders'
@@ -171,7 +179,6 @@ class Order(BaseModel):
 
         Note:
             Este método debe llamarse después de agregar/modificar items.
-            La comisión es del 10% según especificación GEMINI.md (RF-25).
         """
         if not self.order_items:
             self.subtotal = Decimal("0.00")

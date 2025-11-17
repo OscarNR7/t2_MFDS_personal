@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: PurchasesList
+ * Descripción: tabla paginada de compras del usuario con información de orden, estado, fechas y acciones para ver detalles de cada compra
+ */
+
 // Autor: Gabriel Florentino Reyes
 // Fecha: 12-11-2025
 // Descripción: Descripción: Componente que muestra la lista de compras del usuario con 
