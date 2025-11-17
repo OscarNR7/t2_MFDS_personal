@@ -132,8 +132,12 @@ export const listingsService = {
    */
   delete: async (listingId) => {
     try {
-      await apiClient.delete(`/listings/${listingId}`)
+      console.log('[listingsService.delete] Eliminando listing:', listingId)
+      const response = await apiClient.delete(`/listings/${listingId}`)
+      console.log('[listingsService.delete] Response:', response.status, response.data)
+      return response.data
     } catch (error) {
+      console.error('[listingsService.delete] Error:', error.response || error)
       throw error
     }
   },

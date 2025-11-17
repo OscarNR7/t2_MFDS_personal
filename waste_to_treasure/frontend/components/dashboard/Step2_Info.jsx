@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import FormInput from './FormInput' // Importamos el input reutilizable
 import { ChevronDown } from 'lucide-react'
-import categoriesService from '@/lib/api/categories'
+import CategorySelect from './CategorySelect'
 
 /**
  * Componente que renderiza el formulario para el Paso 2.
@@ -16,26 +16,6 @@ export default function Step2_Info({
   updateListingData,
 }) {
   const [errors, setErrors] = useState({})
-  const [categories, setCategories] = useState([])
-  const [loadingCategories, setLoadingCategories] = useState(true)
-
-  // Cargar categorías al montar el componente
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoadingCategories(true)
-        const response = await categoriesService.getAll()
-        // La API retorna { items: [...], total, page, page_size }
-        setCategories(response.items || [])
-      } catch (error) {
-        console.error('Error al cargar categorías:', error)
-        setCategories([])
-      } finally {
-        setLoadingCategories(false)
-      }
-    }
-    fetchCategories()
-  }, [])
 
   const handleChange = e => {
     const { name, value } = e.target
@@ -43,6 +23,13 @@ export default function Step2_Info({
     // Limpiar error al escribir
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }))
+    }
+  }
+  
+  const handleCategoryChange = (e) => {
+    updateListingData({ category_id: e.target.value })
+    if (errors.category_id) {
+      setErrors(prev => ({ ...prev, category_id: null }))
     }
   }
 
@@ -201,42 +188,28 @@ export default function Step2_Info({
           )}
           {/* --- FIN DE CORRECCIÓN FUNCIONAL --- */}
 
-          {/* Selector de Categoría */}
-          <div className="relative w-full md:col-span-2">
-            <label
-              htmlFor="category_id"
-              className="block text-sm font-medium text-dark mb-1"
-            >
-              Categoría {<span className="text-red-500">*</span>}
-            </label>
-            <select
-              id="category_id"
-              name="category_id"
+          {/* Selector de Categoría - Usando CategorySelect para mostrar solo hijas del padre seleccionado */}
+          <div className="md:col-span-2">
+            <CategorySelect
               value={listingData.category_id || ''}
-              onChange={handleChange}
-              disabled={loadingCategories}
-              className={`w-full p-3 border border-gray-400 dark:border-gray-600 rounded-xl appearance-none
-                          bg-white
-                          focus:ring-2 focus:ring-[#396530] focus:border-transparent
-                          disabled:opacity-50 disabled:cursor-not-allowed
-                          ${
-                            !listingData.category_id
-                              ? 'text-gray-500'
-                              : 'text-black'
-                          }`}
-            >
-              <option value="" disabled>
-                {loadingCategories ? 'Cargando categorías...' : 'Selecciona una categoría...'}
-              </option>
-              {categories.map(cat => (
-                <option key={cat.category_id} value={cat.category_id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-5 h-5 text-gray-400 absolute right-4 top-[42px] pointer-events-none" />
+              onChange={handleCategoryChange}
+              type={listingData.type || 'MATERIAL'}
+              parentCategoryId={listingData.category ? Number(listingData.category) : null}
+              disabled={!listingData.category}
+              label="Subcategoría"
+            />
             {errors.category_id && (
               <p className="text-red-500 text-sm mt-1">{errors.category_id}</p>
+            )}
+            {!listingData.category && (
+              <p className="text-amber-600 text-sm mt-1">
+                Primero selecciona una categoría padre en el Paso 1
+              </p>
+            )}
+            {listingData.category && (
+              <p className="text-blue-600 text-sm mt-1">
+                DEBUG: Padre seleccionado ID={listingData.category}, tipo={listingData.type}
+              </p>
             )}
           </div>
 

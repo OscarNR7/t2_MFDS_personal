@@ -144,11 +144,12 @@ async def get_categories(
     """
     logger.info(
         f"Listando categorías: skip={skip}, limit={limit}, type={type}, "
-        f"parent_id={parent_id}, search={search}"
+        f"parent_id={parent_id} (type: {type(parent_id).__name__}), search={search}"
     )
     
     # Convertir parent_id=-1 a None para filtrar solo raíces
     parent_filter = None if parent_id == -1 else parent_id
+    logger.info(f"parent_filter después de conversión: {parent_filter}")
     
     categories, total = await category_service.get_categories(
         db=db,
@@ -158,6 +159,8 @@ async def get_categories(
         parent_id=parent_filter,
         search=search
     )
+    
+    logger.info(f"Categorías encontradas: {total}, devolviendo {len(categories)} items")
     
     # Calcular página actual
     page = (skip // limit) + 1 if limit > 0 else 1

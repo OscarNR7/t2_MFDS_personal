@@ -36,12 +36,20 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    // TODO: Implement password reset with Cognito when AWS SES is configured
-    // For now, show a placeholder message
-    setTimeout(() => {
+    try {
+      // TODO: Implement password reset with Cognito when AWS SES is configured
+      // await authService.forgotPassword(email)
+      
+      // Placeholder: La funcionalidad real requiere configuración de Amazon SES
+      console.log('Solicitud de recuperación de contraseña para:', email);
+      
       setMessage('Funcionalidad de recuperación de contraseña próximamente. Requiere configuración de Amazon SES.');
       setIsLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Error en forgot password:', error);
+      setError('Ocurrió un error. Por favor intenta de nuevo.');
+      setIsLoading(false);
+    }
   };
 
   return (
