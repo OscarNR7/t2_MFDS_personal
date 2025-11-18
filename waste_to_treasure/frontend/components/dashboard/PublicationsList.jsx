@@ -9,7 +9,7 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal'
 /**
  * Autor: Alejandro Campa Alonso 215833
  * Componente: PublicationsList
- * Descripción: tabla de publicaciones del usuario con pestañas de estado (activas, inactivas, rechazadas), acciones para editar, activar, desactivar y eliminar items
+ * Descripción: tabla de publicaciones del usuario con pestañas de estado (activas, inactivas, rechazadas), acciones para editar, activar y desactivar items
  */
 
 // Componente Toast para notificaciones
@@ -121,13 +121,13 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
        * Autor: Arturo Perez Gonzalez
        * Fecha: 16/11/2024
        * Descripción: Renderiza acciones disponibles para publicaciones inactivas.
-       *              Si está RECHAZADA: permite editar o eliminar.
-       *              Si está INACTIVE: permite reactivar, editar o eliminar.
+       *              Si está RECHAZADA: permite editar o desactivar.
+       *              Si está INACTIVE: permite reactivar, editar o desactivar.
        */}
       {activeTab === 'inactive' && (
         <td className="py-4 px-2">
           <div className="flex items-center gap-2">
-            {/* Si está RECHAZADA, solo puede editar o eliminar */}
+            {/* Si está RECHAZADA, solo puede editar o desactivar */}
             {pub.status === 'REJECTED' ? (
               <>
                 <button
@@ -142,7 +142,7 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
                   className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30 flex items-center gap-1"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Eliminar
+                  Desactivar
                 </button>
               </>
             ) : (
@@ -167,7 +167,7 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
                   className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30 flex items-center gap-1"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Eliminar
+                  Desactivar
                 </button>
               </>
             )}
@@ -219,7 +219,7 @@ export default function PublicationsList() {
   const statusMap = useMemo(() => ({
     active: ['ACTIVE', 'SOLD'],
     pending: ['PENDING'],
-    inactive: ['REJECTED', 'DELETED', 'INACTIVE']
+    inactive: ['REJECTED', 'INACTIVE']
   }), [])
 
   // Función para cargar publicaciones
@@ -241,7 +241,7 @@ export default function PublicationsList() {
       const newCounts = {
         active: listings.filter(l => ['ACTIVE', 'SOLD'].includes(l.status)).length,
         pending: listings.filter(l => l.status === 'PENDING').length,
-        inactive: listings.filter(l => ['REJECTED', 'DELETED', 'INACTIVE'].includes(l.status)).length
+        inactive: listings.filter(l => ['REJECTED', 'INACTIVE'].includes(l.status)).length
       }
       setCounts(newCounts)
       console.log('[FETCH DEBUG] Contadores:', newCounts)
@@ -255,7 +255,7 @@ export default function PublicationsList() {
 
     } catch (err) {
       console.error('Error al cargar publicaciones:', err)
-      setError('Error al cargar tus publicaciones')
+      setError('No pudimos cargar tus publicaciones. Por favor, recarga la página.')
     } finally {
       setIsLoading(false)
     }
@@ -339,9 +339,9 @@ export default function PublicationsList() {
       }
 
       const messages = {
-        deactivate: 'Publicación desactivada correctamente',
-        reactivate: 'Publicación reactivada y enviada a revisión',
-        delete: 'Publicación eliminada correctamente'
+        deactivate: 'Tu publicación ha sido desactivada. Puedes reactivarla cuando quieras.',
+        reactivate: 'Tu publicación está en revisión. Te avisaremos cuando sea aprobada.',
+        delete: 'Tu publicación ha sido desactivada correctamente.'
       }
       
       // Cerrar modal primero
@@ -361,9 +361,9 @@ export default function PublicationsList() {
     } catch (err) {
       console.error('[confirmAction] ERROR:', err)
       const errorMessages = {
-        deactivate: 'No se pudo desactivar la publicación',
-        reactivate: 'No se pudo reactivar la publicación',
-        delete: 'No se pudo eliminar la publicación'
+        deactivate: 'No pudimos desactivar tu publicación. Por favor, intenta de nuevo.',
+        reactivate: 'No pudimos procesar tu solicitud. Por favor, intenta más tarde.',
+        delete: 'No pudimos desactivar tu publicación. Por favor, intenta de nuevo.'
       }
       
       let errorDetail = errorMessages[type]
@@ -384,22 +384,22 @@ export default function PublicationsList() {
       case 'deactivate':
         return {
           title: 'Desactivar Publicación',
-          message: '¿Estás seguro de que deseas desactivar esta publicación? Podrás reactivarla más tarde desde la sección de "Inactivas".',
+          message: '¿Quieres desactivar esta publicación? Ya no será visible para otros usuarios, pero podrás reactivarla cuando quieras desde la sección "Inactivas".',
           confirmText: 'Desactivar',
           variant: 'danger',
         }
       case 'reactivate':
         return {
           title: 'Reactivar Publicación',
-          message: 'Esta publicación será enviada nuevamente a revisión y estará visible una vez aprobada. ¿Deseas continuar?',
+          message: 'Tu publicación se enviará nuevamente a revisión. Una vez aprobada, volverá a estar visible para otros usuarios. ¿Deseas continuar?',
           confirmText: 'Reactivar',
           variant: 'success',
         }
       case 'delete':
         return {
-          title: 'Eliminar Publicación',
-          message: '¿Estás seguro de que deseas eliminar permanentemente esta publicación? Esta acción no se puede deshacer.',
-          confirmText: 'Eliminar',
+          title: 'Desactivar Publicación',
+          message: '¿Quieres desactivar esta publicación? Ya no será visible para otros usuarios, pero podrás reactivarla más tarde si lo deseas.',
+          confirmText: 'Desactivar',
           variant: 'danger',
         }
       default:

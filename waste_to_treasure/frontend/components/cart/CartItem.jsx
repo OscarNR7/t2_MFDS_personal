@@ -7,6 +7,7 @@ import { Trash2, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import QuantitySelector from './QuantitySelector'
 import { useCartStore } from '@/stores/useCartStore'
 import Toast from '../ui/Toast'
+import { getPlaceholderDataUri } from '@/components/ui/ImagePlaceholder'
 
 /**
  * Autor: Alejandro Campa Alonso 215833

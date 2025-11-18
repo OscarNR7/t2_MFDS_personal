@@ -200,6 +200,26 @@ export const signOut = async () => {
 }
 
 /**
+ * Decodificar JWT (solo la parte del payload)
+ */
+const decodeJWT = (token) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Error decodificando JWT:', error)
+    return null
+  }
+}
+
+/**
  * Obtener el usuario actual autenticado
  */
 export const getCurrentUser = async () => {
@@ -207,15 +227,15 @@ export const getCurrentUser = async () => {
   try {
     const session = await fetchAuthSession()
     if (session.tokens?.idToken) {
-      console.log('Session de OAuth encontrada')
-      
+      console.log('✅ [getCurrentUser] Session de OAuth/Amplify encontrada')
+
       const attributes = await fetchUserAttributes()
-      
+
       const idToken = session.tokens.idToken.toString()
       if (typeof window !== 'undefined') {
         localStorage.setItem('auth-token', idToken)
       }
-      
+
       return {
         username: attributes.email || attributes.sub,
         attributes: {
@@ -233,7 +253,41 @@ export const getCurrentUser = async () => {
       }
     }
   } catch (error) {
-    console.log('No OAuth session found, trying Cognito User Pool')
+    console.log('ℹ️ [getCurrentUser] No OAuth/Amplify session found, trying other methods...')
+  }
+
+  // Si no hay sesión de Amplify, verificar si hay token en localStorage (OAuth manual)
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth-token')
+    if (token) {
+      console.log('🔑 [getCurrentUser] Token encontrado en localStorage, decodificando...')
+      const decoded = decodeJWT(token)
+
+      if (decoded) {
+        console.log('✅ [getCurrentUser] Token decodificado exitosamente')
+        return {
+          username: decoded.email || decoded.sub,
+          attributes: {
+            email: decoded.email,
+            name: decoded.name,
+            given_name: decoded.given_name,
+            family_name: decoded.family_name,
+            sub: decoded.sub,
+            email_verified: decoded.email_verified,
+          },
+          session: {
+            getIdToken: () => ({
+              getJwtToken: () => token
+            }),
+            isValid: () => {
+              // Verificar si el token ha expirado
+              const now = Math.floor(Date.now() / 1000)
+              return decoded.exp && decoded.exp > now
+            }
+          },
+        }
+      }
+    }
   }
 
   // Si no hay sesion OAuth, intentar con User Pool
@@ -302,12 +356,24 @@ export const getAuthToken = async () => {
 
 /**
  * Verificar si el usuario esta autenticado
+ * Primero verifica localStorage (para OAuth), luego Amplify, luego User Pool
  */
 export const isAuthenticated = async () => {
   try {
+    // Primero verificar si hay token en localStorage (OAuth)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth-token')
+      if (token) {
+        console.log('✅ [isAuthenticated] Token encontrado en localStorage')
+        return true
+      }
+    }
+
+    // Si no hay token en localStorage, intentar con Amplify/User Pool
     const user = await getCurrentUser()
     return !!user
   } catch (error) {
+    console.error('❌ [isAuthenticated] Error:', error)
     return false
   }
 }

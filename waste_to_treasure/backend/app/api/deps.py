@@ -137,14 +137,41 @@ async def get_current_user_with_jit(
         try:
             # Extraer nombre completo del token de Cognito
             # Cognito puede proveer 'name', 'given_name', 'family_name', etc.
-            # Algunos proveedores OAuth (como Google) pueden enviar objetos complejos
-            
+            # Algunos proveedores OAuth (como Google) pueden enviar datos URL-encoded o JSON
+
             raw_name = payload.get("name")
             given_name = payload.get("given_name")
             family_name = payload.get("family_name")
-            
+
+            # Intentar decodificar si viene URL-encoded desde Google
+            if isinstance(raw_name, str):
+                try:
+                    # Intentar decodificar URL-encoded
+                    import urllib.parse
+                    decoded_name = urllib.parse.unquote_plus(raw_name)
+
+                    # Si es JSON, intentar parsearlo
+                    if decoded_name.startswith('[') or decoded_name.startswith('{'):
+                        import json
+                        name_data = json.loads(decoded_name)
+
+                        # Si es un array, tomar el primer elemento
+                        if isinstance(name_data, list) and len(name_data) > 0:
+                            name_data = name_data[0]
+
+                        # Extraer displayName si existe
+                        if isinstance(name_data, dict):
+                            raw_name = name_data.get('displayName') or name_data.get('unstructuredName')
+                            if not raw_name and name_data.get('givenName') and name_data.get('familyName'):
+                                raw_name = f"{name_data['givenName']} {name_data['familyName']}"
+                    else:
+                        raw_name = decoded_name
+                except (json.JSONDecodeError, ValueError, urllib.error.URLError):
+                    # Si falla el parseo, usar el valor original
+                    pass
+
             # Construir el nombre completo de forma segura
-            if isinstance(raw_name, str) and len(raw_name) <= 255:
+            if isinstance(raw_name, str) and raw_name.strip() and len(raw_name.strip()) <= 255:
                 full_name = raw_name.strip()
             elif given_name and family_name:
                 # Construir desde given_name y family_name
@@ -153,11 +180,13 @@ async def get_current_user_with_jit(
                 full_name = str(given_name).strip()[:255]
             else:
                 # Fallback: usar la parte local del email
-                full_name = email.split("@")[0][:255]
-            
+                full_name = email.split("@")[0].replace('.', ' ').title()[:255]
+
             # Validar que no esté vacío
             if not full_name:
-                full_name = email.split("@")[0][:255]
+                full_name = email.split("@")[0].replace('.', ' ').title()[:255]
+
+            logger.info(f"✅ Nombre procesado para JIT: '{full_name}' (email: {email})")
             
             # Crear nuevo usuario
             new_user = User(

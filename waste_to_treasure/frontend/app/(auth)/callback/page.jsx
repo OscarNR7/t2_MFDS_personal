@@ -12,7 +12,7 @@ import {
 export default function CallbackPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { login } = useAuth()
+  const { checkAuthStatus } = useAuth()
   const [error, setError] = useState(null)
   const [isProcessing, setIsProcessing] = useState(true)
   const hasProcessed = useRef(false)
@@ -30,7 +30,7 @@ export default function CallbackPage() {
         const code = searchParams.get('code')
         const errorParam = searchParams.get('error')
         const errorDescription = searchParams.get('error_description')
-        
+
         if (errorParam) {
           throw new Error(errorDescription || `Error de OAuth: ${errorParam}`)
         }
@@ -42,7 +42,6 @@ export default function CallbackPage() {
         // Verificar si este codigo ya fue procesado
         const processedCode = sessionStorage.getItem('oauth_processed_code')
         if (processedCode === code) {
-          console.log('Este codigo ya fue procesado, redirigiendo...')
           router.push('/materials')
           return
         }
@@ -51,8 +50,6 @@ export default function CallbackPage() {
         hasProcessed.current = true
         sessionStorage.setItem('oauth_processed_code', code)
 
-        console.log('Codigo OAuth recibido, procesando...')
-        
         // Determinar la URL de redirect que se uso
         const currentUrl = window.location.origin
         const redirectUri = currentUrl.includes('amplifyapp.com')
@@ -60,23 +57,16 @@ export default function CallbackPage() {
           : 'http://localhost:3000/callback'
 
         // Intercambiar el codigo por tokens
-        console.log('Intercambiando codigo por tokens...')
         const tokens = await exchangeCodeForTokens(code, redirectUri)
-        
+
         if (!tokens.idToken) {
           throw new Error('No se obtuvo ID token')
         }
 
-        console.log('Tokens obtenidos exitosamente')
-
         // Extraer atributos del usuario del ID token
         const userAttributes = getUserAttributesFromToken(tokens.idToken)
-        console.log('Atributos del usuario:', {
-          email: userAttributes.email,
-          name: userAttributes.name
-        })
 
-        // Guardar el token en localStorage
+        // Guardar el token en localStorage ANTES de cualquier otra operación
         localStorage.setItem('auth-token', tokens.idToken)
         if (tokens.accessToken) {
           localStorage.setItem('access-token', tokens.accessToken)
@@ -88,23 +78,24 @@ export default function CallbackPage() {
         // Limpiar el codigo procesado del sessionStorage
         sessionStorage.removeItem('oauth_processed_code')
 
-        // Esperar un momento antes de actualizar el contexto
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Esperar para asegurar que localStorage esté sincronizado
+        await new Promise(resolve => setTimeout(resolve, 300))
 
         // Actualizar el contexto de autenticacion
+        // checkAuthStatus obtiene datos de Cognito y del backend (triggereando JIT si es necesario)
         try {
-          const updatedUser = await login()
-          
-          // Redirigir segun el rol
-          if (updatedUser && updatedUser.role === 'ADMIN') {
-            router.push('/admin')
-          } else {
-            router.push('/materials')
-          }
-        } catch (loginError) {
-          console.error('Error al actualizar contexto:', loginError)
-          // Aun asi redirigir a materials ya que el token esta guardado
+          // Forzar la recarga del estado de autenticación
+          await checkAuthStatus()
+
+          // Esperar un poco más para asegurar que el contexto se actualizó
+          await new Promise(resolve => setTimeout(resolve, 500))
+
+          // Redirigir a materials
           router.push('/materials')
+
+        } catch (authError) {
+          // Si falla checkAuthStatus, hacer hard redirect para forzar reinicio
+          window.location.href = '/materials'
         }
 
       } catch (err) {
@@ -123,7 +114,7 @@ export default function CallbackPage() {
     }
 
     handleCallback()
-  }, [router, login, searchParams])
+  }, [router, checkAuthStatus, searchParams])
 
   if (error) {
     return (

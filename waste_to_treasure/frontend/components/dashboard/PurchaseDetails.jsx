@@ -86,7 +86,7 @@ export default function PurchaseDetails({ order }) {
             </div>
           </div>
           <span className={`px-4 py-2 text-sm font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-            {getStatusLabel('completed')}
+            {getStatusLabel(order.status)}
           </span>
         </div>
       </div>
