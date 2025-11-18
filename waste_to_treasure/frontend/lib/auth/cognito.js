@@ -120,6 +120,78 @@ export const resendConfirmationCode = async email => {
 }
 
 /**
+ * Solicitar recuperación de contraseña
+ * Cognito enviará un código de verificación al email del usuario
+ */
+export const forgotPassword = async (email) => {
+  return new Promise((resolve, reject) => {
+    if (!userPool) {
+      reject(new Error('Cognito User Pool no esta configurado'))
+      return
+    }
+
+    const userData = {
+      Username: email,
+      Pool: userPool,
+    }
+
+    const cognitoUser = new CognitoUser(userData)
+
+    cognitoUser.forgotPassword({
+      onSuccess: (result) => {
+        console.log('Forgot password success:', result)
+        resolve(result)
+      },
+      onFailure: (err) => {
+        console.error('Forgot password error:', err)
+        reject(err)
+      },
+      // inputVerificationCode es llamado cuando Cognito está listo para recibir el código
+      inputVerificationCode: (data) => {
+        console.log('Código de verificación enviado:', data)
+        resolve({
+          CodeDeliveryDetails: data,
+          message: 'Código de verificación enviado exitosamente'
+        })
+      }
+    })
+  })
+}
+
+/**
+ * Confirmar nueva contraseña con el código de verificación
+ * @param {string} email - Email del usuario
+ * @param {string} verificationCode - Código recibido por email
+ * @param {string} newPassword - Nueva contraseña
+ */
+export const confirmPassword = async (email, verificationCode, newPassword) => {
+  return new Promise((resolve, reject) => {
+    if (!userPool) {
+      reject(new Error('Cognito User Pool no esta configurado'))
+      return
+    }
+
+    const userData = {
+      Username: email,
+      Pool: userPool,
+    }
+
+    const cognitoUser = new CognitoUser(userData)
+
+    cognitoUser.confirmPassword(verificationCode, newPassword, {
+      onSuccess: () => {
+        console.log('Password successfully changed')
+        resolve({ message: 'Contraseña cambiada exitosamente' })
+      },
+      onFailure: (err) => {
+        console.error('Confirm password error:', err)
+        reject(err)
+      }
+    })
+  })
+}
+
+/**
  * Iniciar sesion con email y contraseña
  */
 export const signIn = async (email, password) => {
@@ -439,4 +511,6 @@ export default {
   getAuthToken,
   isAuthenticated,
   signInWithProvider,
+  forgotPassword,
+  confirmPassword,
 }

@@ -1,16 +1,19 @@
 /**
  * Autor: Oscar Alonso Nava Rivera
- * Fecha: 09/11/2025
+ * Fecha: 17/11/2025
  * Componente: ForgotPasswordPage (forgot-password/page.jsx)
- * Descripción: Página de recuperación de contraseña.
+ * Descripción: Página de recuperación de contraseña usando AWS Cognito.
  */
 
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { forgotPassword } from '@/lib/auth/cognito';
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -37,17 +40,35 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      // TODO: Implement password reset with Cognito when AWS SES is configured
-      // await authService.forgotPassword(email)
+      await forgotPassword(email);
       
-      // Placeholder: La funcionalidad real requiere configuración de Amazon SES
-      console.log('Solicitud de recuperación de contraseña para:', email);
+      // Guardar email en localStorage para usarlo en la siguiente página
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('reset-email', email);
+      }
       
-      setMessage('Funcionalidad de recuperación de contraseña próximamente. Requiere configuración de Amazon SES.');
-      setIsLoading(false);
+      setMessage('¡Código enviado! Redirigiendo...');
+      
+      // Redirigir a la página de reset password después de 2 segundos
+      setTimeout(() => {
+        router.push('/reset-password');
+      }, 2000);
+      
     } catch (error) {
       console.error('Error en forgot password:', error);
-      setError('Ocurrió un error. Por favor intenta de nuevo.');
+      
+      if (error.code === 'UserNotFoundException') {
+        setError('No existe una cuenta con este correo electrónico');
+      } else if (error.code === 'LimitExceededException') {
+        setError('Demasiados intentos. Por favor intenta más tarde');
+      } else if (error.code === 'InvalidParameterException') {
+        setError('El correo electrónico no es válido');
+      } else if (error.message) {
+        setError(error.message);
+      } else {
+        setError('Ocurrió un error. Por favor intenta de nuevo.');
+      }
+      
       setIsLoading(false);
     }
   };
