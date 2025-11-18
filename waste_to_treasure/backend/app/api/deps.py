@@ -69,7 +69,7 @@ async def get_current_user_with_jit(
         - El UUID del usuario se toma del claim 'sub' del token Cognito
         - El email se toma del claim 'email' del token
         - Usuarios nuevos se crean con role=USER y status=ACTIVE
-        - Soporta autenticación directa y OAuth (Google, Facebook, etc.)
+        - Soporta autenticación directa y OAuth (Google, etc.)
     """
     
     token = credentials.credentials
